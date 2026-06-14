@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Dashboard - Travix</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="modal.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Hide views immediately — JS reveals correct one before paint */
+        .dashboard-view { display: none !important; }
+        .dashboard-tabs { visibility: hidden; }
+        /* Skeleton shimmer for profile */
+        .profile-skeleton { animation: skShimmer 1.4s ease-in-out infinite; }
+        @keyframes skShimmer { 0%,100%{opacity:1} 50%{opacity:.45} }
+    </style>
+    <script>
+        // Run BEFORE DOM paint — read role from localStorage and inject body class
+        (function() {
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || 'null');
+                const role = (user && user.role === 'traveler') ? 'traveler' : 'sender';
+                document.documentElement.setAttribute('data-role', role);
+            } catch(e) {}
+        })();
+    </script>
+    <style>
+        html[data-role="sender"]   #sender-view   { display: block !important; }
+        html[data-role="traveler"] #traveler-view { display: block !important; }
+        html[data-role="sender"]   #tabSender     { display: none; }
+        html[data-role="traveler"] #tabTraveler   { display: none; }
+    </style>
+    <style>
+        /* ── ID Verification Card ── */
+        .verif-card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1.5px solid #E5E7EB;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .verif-header {
+            display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;
+        }
+        .verif-icon { font-size: 2rem; }
+        .verif-title { font-size: 1rem; font-weight: 700; color: #0A1A2F; margin: 0; }
+        .verif-sub   { font-size: 0.8rem; color: #6B7280; margin: 0.1rem 0 0; }
+        .verif-badge {
+            margin-left: auto; padding: 0.3rem 0.8rem;
+            border-radius: 20px; font-size: 0.78rem; font-weight: 700;
+            background: #F3F4F6; color: #6B7280;
+        }
+        .verif-badge.pending  { background: #FEF3C7; color: #92400E; }
+        .verif-badge.approved { background: #D1FAE5; color: #065F46; }
+        .verif-badge.rejected { background: #FEE2E2; color: #991B1B; }
+
+        .verif-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 0.75rem; margin-bottom: 1rem;
+        }
+        .verif-upload-box {
+            border: 2px dashed #E5E7EB; border-radius: 12px;
+            cursor: pointer; transition: border-color 0.2s, background 0.2s;
+            overflow: hidden; min-height: 100px;
+        }
+        .verif-upload-box:hover  { border-color: #D4AF37; background: #FFFBEB; }
+        .verif-upload-box.done   { border-color: #10B981; border-style: solid; background: #F0FDF4; }
+        .verif-box-inner {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 0.4rem; padding: 1rem 0.5rem;
+            font-size: 0.8rem; color: #9CA3AF; text-align: center;
+        }
+        .verif-box-inner img {
+            width: 100%; height: 80px; object-fit: cover; border-radius: 8px;
+        }
+        .verif-note {
+            display: flex; align-items: center; gap: 0.5rem;
+            background: #EFF6FF; border-radius: 8px; padding: 0.6rem 0.85rem;
+            font-size: 0.8rem; color: #1E40AF; margin-bottom: 1rem;
+        }
+        .verif-submit-btn {
+            width: 100%; padding: 0.85rem; background: #D4AF37;
+            color: #fff; border: none; border-radius: 10px;
+            font-weight: 700; font-size: 0.95rem; cursor: pointer;
+            transition: background 0.2s;
+        }
+        .verif-submit-btn:hover    { background: #C09B2A; }
+        .verif-submit-btn:disabled { background: #E5E7EB; color: #9CA3AF; cursor: not-allowed; }
+
+        .verif-status-area {
+            text-align: center; padding: 1.5rem 1rem;
+        }
+        .verif-status-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .verif-status-area h4 { color: #0A1A2F; margin: 0 0 0.4rem; }
+        .verif-status-area p  { color: #6B7280; font-size: 0.88rem; margin: 0; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <div class="logo" onclick="window.location.href='travix-landing.html'" style="cursor: pointer;">
+                    <img src="travix-logo.png" alt="Travix Logo">
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="travix-landing.html">Home</a></li>
+                    <li><a href="calculator.html">Calculator</a></li>
+                    <li><a href="travix-landing.html#how-it-works">How it Works</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="help-center.html">Help</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <button class="btn-profile" id="profileBtn">
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="10" cy="7" r="3" fill="currentColor"/>
+                            <path d="M4 17C4 14 7 12 10 12C13 12 16 14 16 17" stroke="currentColor" stroke-width="2" fill="none"/>
+                        </svg>
+                        Profile
+                    </button>
+                    <button class="btn-logout-nav" id="logoutBtn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11 3L15 7L11 11M15 7H5M5 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Logout
+                    </button>
+                </div>
+                <button class="mobile-menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- User Dashboard -->
+    <main class="user-dashboard">
+        <div class="container">
+            <!-- User Profile Card (Settings button removed) -->
+            <div class="user-profile-card">
+                <div class="profile-left">
+                    <div class="user-avatar" id="userAvatar">?</div>
+                    <div class="user-info">
+                        <div class="user-name-row">
+                            <h2 id="userName">Loading...</h2>
+                            <span class="verified-badge">✓ Verified</span>
+                        </div>
+                        <p class="user-handle" id="userHandle">@...</p>
+                        <p class="user-location" id="userLocation">📍 Loading...</p>
+                        <div class="user-rating">
+                            <span class="star">⭐</span>
+                            <strong id="userRating">0</strong>
+                            <span class="reviews" id="userReviews">(0 reviews)</span>
+                        </div>
+                        <div class="user-stats">
+                            <div class="user-stat">
+                                <strong id="statDeliveries">0</strong>
+                                <span>Total Deliveries</span>
+                            </div>
+                            <div class="user-stat">
+                                <strong id="statSent">0</strong>
+                                <span>Items Sent</span>
+                            </div>
+                            <div class="user-stat">
+                                <strong id="statEarned" class="text-gold">$0</strong>
+                                <span>Earned</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ID Verification Card -->
+            <div class="verif-card" id="verifCard">
+                <div class="verif-header">
+                    <div class="verif-icon" id="verifIcon">🪪</div>
+                    <div>
+                        <h3 class="verif-title" id="verifTitle">Identity Verification</h3>
+                        <p class="verif-sub" id="verifSub">Required before placing or accepting orders</p>
+                    </div>
+                    <span class="verif-badge" id="verifBadge">Unverified</span>
+                </div>
+
+                <!-- Upload area — hidden when approved/pending -->
+                <div id="verifUploadArea">
+                    <div class="verif-grid">
+                        <!-- ID Front -->
+                        <div class="verif-upload-box" id="boxIdFront" onclick="triggerUpload('id_front')">
+                            <input type="file" id="inputIdFront" accept="image/*" style="display:none" onchange="handleUpload('id_front',this)">
+                            <div class="verif-box-inner" id="previewIdFront">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#9CA3AF" stroke-width="1.5"/><path d="M6 9h4M6 12h8M6 15h5" stroke="#9CA3AF" stroke-width="1.2" stroke-linecap="round"/></svg>
+                                <span>ID Front</span>
+                            </div>
+                        </div>
+                        <!-- ID Back -->
+                        <div class="verif-upload-box" id="boxIdBack" onclick="triggerUpload('id_back')">
+                            <input type="file" id="inputIdBack" accept="image/*" style="display:none" onchange="handleUpload('id_back',this)">
+                            <div class="verif-box-inner" id="previewIdBack">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#9CA3AF" stroke-width="1.5"/><path d="M6 9h4M6 12h8M6 15h5" stroke="#9CA3AF" stroke-width="1.2" stroke-linecap="round"/></svg>
+                                <span>ID Back</span>
+                            </div>
+                        </div>
+                        <!-- Selfie with ID -->
+                        <div class="verif-upload-box" id="boxSelfie" onclick="triggerUpload('selfie')">
+                            <input type="file" id="inputSelfie" accept="image/*" capture="user" style="display:none" onchange="handleUpload('selfie',this)">
+                            <div class="verif-box-inner" id="previewSelfie">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="3.5" stroke="#9CA3AF" stroke-width="1.5"/><path d="M5 20c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                <span>Selfie with ID</span>
+                            </div>
+                        </div>
+                        <!-- Passport -->
+                        <div class="verif-upload-box" id="boxPassport" onclick="triggerUpload('passport')">
+                            <input type="file" id="inputPassport" accept="image/*" style="display:none" onchange="handleUpload('passport',this)">
+                            <div class="verif-box-inner" id="previewPassport">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="4" y="2" width="16" height="20" rx="2" stroke="#9CA3AF" stroke-width="1.5"/><circle cx="12" cy="10" r="3" stroke="#9CA3AF" stroke-width="1.2"/><path d="M7 17h10" stroke="#9CA3AF" stroke-width="1.2" stroke-linecap="round"/></svg>
+                                <span>Passport <small style="color:#9CA3AF">(optional)</small></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="verif-note">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#3B82F6" stroke-width="1.4"/><path d="M8 5v4M8 11v1" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        Your documents are encrypted and used only for identity verification.
+                    </div>
+
+                    <button class="verif-submit-btn" id="verifSubmitBtn" onclick="submitVerification()" disabled>
+                        Submit for Verification
+                    </button>
+                </div>
+
+                <!-- Pending state -->
+                <div id="verifPendingArea" style="display:none;" class="verif-status-area">
+                    <div class="verif-status-icon">⏳</div>
+                    <h4>Under Review</h4>
+                    <p>Your documents are being reviewed. This usually takes up to 24 hours.</p>
+                </div>
+
+                <!-- Approved state -->
+                <div id="verifApprovedArea" style="display:none;" class="verif-status-area">
+                    <div class="verif-status-icon">✅</div>
+                    <h4>Identity Verified</h4>
+                    <p>Your account is fully verified. You can send and carry items.</p>
+                </div>
+            </div>
+
+            <!-- Dashboard Tabs -->
+            <div class="dashboard-tabs" id="dashboardTabs">
+                <button class="dashboard-tab" id="tabSender" data-view="sender">
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 8L10 4L16 8L10 12L4 8Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M4 12L10 16L16 12" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Sender Dashboard
+                </button>
+                <button class="dashboard-tab" id="tabTraveler" data-view="traveler">
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <path d="M10 3V10L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Traveler Dashboard
+                </button>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div id="dashboard-content">
+                <!-- Traveler View (Default) -->
+                <div class="dashboard-view" id="traveler-view">
+                    <!-- Stats Cards -->
+                    <div class="dashboard-stats">
+                        <div class="stat-card-small">
+                            <div class="stat-icon-small">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 11l3 3L22 4" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="#D4AF37" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="stat-value-small">0</div>
+                            <div class="stat-label-small">Accepted Trips</div>
+                        </div>
+                        <div class="stat-card-small">
+                            <div class="stat-icon-small">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" stroke="#D4AF37" stroke-width="2"/>
+                                    <path d="M12 6v6l4 2" stroke="#D4AF37" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="stat-value-small">0</div>
+                            <div class="stat-label-small">Pending Requests</div>
+                        </div>
+                        <div class="stat-card-small">
+                            <div class="stat-icon-small">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M20 7H4L2 17H22L20 7Z" stroke="#D4AF37" stroke-width="2"/>
+                                    <path d="M9 7V5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5V7" stroke="#D4AF37" stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <div class="stat-value-small">0</div>
+                            <div class="stat-label-small">Active Deliveries</div>
+                        </div>
+                        <!-- Total Earnings -->
+                        <div class="stat-card-small">
+                            <div class="stat-icon-small">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" stroke="#D4AF37" stroke-width="2"/>
+                                    <path d="M12 6v12M9 9h4.5a1.5 1.5 0 010 3H9m0 0h4.5a1.5 1.5 0 010 3H9" stroke="#D4AF37" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="stat-value-small">$0</div>
+                            <div class="stat-label-small">Total Earnings</div>
+                        </div>
+                        <div class="stat-card-small">
+                            <div class="stat-icon-small">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" stroke="#D4AF37" stroke-width="2"/>
+                                    <path d="M3 10h18M8 3v4M16 3v4" stroke="#D4AF37" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="stat-value-small">$0</div>
+                            <div class="stat-label-small">This Month</div>
+                        </div>
+                    </div>
+
+                    <!-- Main Content Grid -->
+                    <div class="dashboard-main-grid">
+                        <!-- Active Deliveries -->
+                        <div class="dashboard-section" style="grid-column: 1 / -1;">
+                            <div class="section-header">
+                                <h3>Active Deliveries</h3>
+                                <button class="btn-secondary-small" onclick="window.location.href='delivery-requests.html'">Browse Requests</button>
+                            </div>
+                            <div class="deliveries-list" id="traveler-deliveries-list">
+                                <div class="list-loading">Loading...</div>
+                            </div>
+
+                            <!-- Your Trips Section -->
+                            <div class="section-header" style="margin-top: 2rem;">
+                                <h3>Your Trips</h3>
+                                <button class="btn-link-small" onclick="window.location.href='become-traveler.html'">+ Add Trip</button>
+                            </div>
+                            <div class="trips-list">
+                                <p style="text-align: center; padding: 2rem; color: #6B7280;">No trips posted yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sender View -->
+                <div class="dashboard-view" id="sender-view">
+                    <!-- Stats Cards -->
+                    <div class="dashboard-stats">
+                        <div class="stat-card-small">
+                            <div class="stat-icon-small">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" stroke="#D4AF37" stroke-width="2"/>
+                                    <path d="M12 6v6l4 2" stroke="#D4AF37" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="stat-value-small">0</div>
+                            <div class="stat-label-small">Active Requests</div>
+                        </div>
+                        <div class="stat-card-small">
+                            <div class="stat-icon-small">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="stat-value-small">0</div>
+                            <div class="stat-label-small">Pending</div>
+                        </div>
+                        <div class="stat-card-small">
+                            <div class="stat-icon-small">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 11l3 3L22 4" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="#D4AF37" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="stat-value-small">0</div>
+                            <div class="stat-label-small">Completed</div>
+                        </div>
+                        <!-- Total Spent -->
+                        <div class="stat-card-small">
+                            <div class="stat-icon-small">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" stroke="#D4AF37" stroke-width="2"/>
+                                    <path d="M12 6v12M9 9h4.5a1.5 1.5 0 010 3H9m0 0h4.5a1.5 1.5 0 010 3H9" stroke="#D4AF37" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="stat-value-small">$0</div>
+                            <div class="stat-label-small">Total Spent</div>
+                        </div>
+                    </div>
+
+                    <!-- Main Content Grid -->
+                    <div class="dashboard-main-grid">
+                        <!-- Active Deliveries -->
+                        <div class="dashboard-section" style="grid-column: 1 / -1;">
+                            <div class="section-header">
+                                <h3>Active Deliveries</h3>
+                                <button class="btn-secondary-small" onclick="window.location.href='send-item.html'">+ New Request</button>
+                            </div>
+                            <div class="deliveries-list" id="sender-deliveries-list">
+                                <div class="list-loading">Loading...</div>
+                            </div>
+
+                            <!-- Browse Travelers Section (NEW) -->
+                            <div class="section-header" style="margin-top: 2rem;">
+                                <h3>Find Travelers</h3>
+                                <button class="btn-link-small" onclick="window.location.href='available-travelers.html'">Browse All Travelers</button>
+                            </div>
+                            <div class="travelers-preview" style="text-align: center; padding: 2rem; background: #F9FAFB; border-radius: 12px; border: 2px dashed #E5E7EB;">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 1rem; opacity: 0.4;">
+                                    <circle cx="12" cy="8" r="4" stroke="#1A2B4A" stroke-width="2"/>
+                                    <path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="#1A2B4A" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <p style="color: #6B7280; margin-bottom: 1rem;">Browse verified travelers going to your destination</p>
+                                <button class="btn-primary" onclick="window.location.href='available-travelers.html'" style="padding: 0.75rem 2rem;">
+                                    <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+                                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+                                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"/>
+                                    </svg>
+                                    View Available Travelers
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <div class="footer-logo">
+                        <img src="travix-logo.png" alt="Travix Logo">
+                    </div>
+                    <p>Connecting senders with travelers for affordable, secure deliveries worldwide</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 0C4.477 0 0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.879V12.89h-2.54V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-.443 2.89h-2.33v6.989C16.343 19.128 20 14.991 20 10c0-5.523-4.477-10-10-10z"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="Twitter">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M6.29 18.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0020 3.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.073 4.073 0 01.8 7.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 010 16.407a11.616 11.616 0 006.29 1.84"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="Instagram">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 0C7.284 0 6.944.012 5.877.06 4.813.11 4.086.278 3.45.525a4.917 4.917 0 00-1.772 1.153A4.917 4.917 0 00.525 3.45C.278 4.086.11 4.813.06 5.877.012 6.944 0 7.284 0 10s.012 3.056.06 4.123c.05 1.064.218 1.791.465 2.427a4.917 4.917 0 001.153 1.772 4.917 4.917 0 001.772 1.153c.636.247 1.363.415 2.427.465C6.944 19.988 7.284 20 10 20s3.056-.012 4.123-.06c1.064-.05 1.791-.218 2.427-.465a4.917 4.917 0 001.772-1.153 4.917 4.917 0 001.153-1.772c.247-.636.415-1.363.465-2.427C19.988 13.056 20 12.716 20 10s-.012-3.056-.06-4.123c-.05-1.064-.218-1.791-.465-2.427a4.917 4.917 0 00-1.153-1.772A4.917 4.917 0 0016.55.525C15.914.278 15.187.11 14.123.06 13.056.012 12.716 0 10 0zm0 1.802c2.67 0 2.987.01 4.041.059.976.045 1.505.207 1.858.344.466.181.8.398 1.15.748.35.35.566.684.748 1.15.137.353.3.882.344 1.857.048 1.055.058 1.37.058 4.04 0 2.672-.01 2.987-.058 4.042-.045.975-.207 1.504-.344 1.857a3.097 3.097 0 01-.748 1.15c-.35.35-.684.566-1.15.748-.353.137-.882.3-1.857.344-1.054.048-1.37.058-4.041.058-2.67 0-2.987-.01-4.04-.058-.976-.045-1.505-.207-1.858-.344a3.097 3.097 0 01-1.15-.748 3.097 3.097 0 01-.748-1.15c-.137-.353-.3-.882-.344-1.857-.048-1.055-.058-1.37-.058-4.041 0-2.67.01-2.986.058-4.04.045-.976.207-1.505.344-1.858.181-.466.398-.8.748-1.15.35-.35.684-.566 1.15-.748.353-.137.882-.3 1.857-.344 1.055-.048 1.37-.058 4.041-.058zM10 4.865a5.135 5.135 0 100 10.27 5.135 5.135 0 000-10.27zm0 8.468a3.333 3.333 0 110-6.666 3.333 3.333 0 010 6.666zm5.338-8.67a1.2 1.2 0 100 2.4 1.2 1.2 0 000-2.4z"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="LinkedIn">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M0 1.667C0 .747.746 0 1.667 0h16.666C19.253 0 20 .746 20 1.667v16.666C20 19.253 19.254 20 18.333 20H1.667C.747 20 0 19.254 0 18.333V1.667zM6.261 16.667V7.917H3.225v8.75h3.036zM4.743 6.667c1.061 0 1.723-.703 1.723-1.582-.02-.898-.662-1.583-1.703-1.583-1.04 0-1.723.685-1.723 1.583 0 .879.662 1.582 1.683 1.582h.02zm3.506 10V11.39c0-.273.02-.547.1-.742.22-.547.72-1.113 1.56-1.113 1.1 0 1.54.84 1.54 2.07v4.062h3.036v-4.354c0-2.806-1.498-4.112-3.496-4.112-1.638 0-2.358.916-2.758 1.54h.02V7.918H5.215c.04.858 0 8.75 0 8.75h3.034z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="travix-landing.html">Home</a></li>
+                        <li><a href="travix-landing.html#how-it-works">How it Works</a></li>
+                        <li><a href="send-item.html">Send Items</a></li>
+                        <li><a href="become-traveler.html">Become a Traveler</a></li>
+                        <li><a href="calculator.html">Price Calculator</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="help-center.html">Help Center</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                        <li><a href="terms-of-service.html">Terms of Service</a></li>
+                        <li><a href="safety-guidelines.html">Safety Guidelines</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Contact Us</h4>
+                    <ul class="contact-info">
+                        <li>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M0 4a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H2a2 2 0 01-2-2V4zm2-1a1 1 0 00-1 1v.217l7 4.2 7-4.2V4a1 1 0 00-1-1H2zm13 2.383l-4.758 2.855L15 11.114v-5.73zm-.034 6.878L9.271 8.82 8 9.583 6.728 8.82l-5.694 3.44A1 1 0 002 13h12a1 1 0 00.966-.739zM1 11.114l4.758-2.876L1 5.383v5.73z"/>
+                            </svg>
+                            <span>support@travix.com</span>
+                        </li>
+                        <li>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M3.654 1.328a.678.678 0 00-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 004.168 6.608 17.569 17.569 0 006.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 00-.063-1.015l-2.307-1.794a.678.678 0 00-.58-.122l-2.19.547a1.745 1.745 0 01-1.657-.459L5.482 8.062a1.745 1.745 0 01-.46-1.657l.548-2.19a.678.678 0 00-.122-.58L3.654 1.328z"/>
+                            </svg>
+                            <span>+962 77 542 3322</span>
+                        </li>
+                        <li>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M8 16s6-5.686 6-10A6 6 0 002 6c0 4.314 6 10 6 10zm0-7a3 3 0 110-6 3 3 0 010 6z"/>
+                            </svg>
+                            <span>Amman, Jordan</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Travix. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Cookie Policy</a>
+                    <a href="#">Security</a>
+                    <a href="#">Sitemap</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/api-config.js"></script>
+    <script src="modal.js"></script>
+    <script src="navbar-auth.js"></script>
+    <script src="user-dashboard.js"></script>
+</body>
+</html>

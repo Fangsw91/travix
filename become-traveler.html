@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Become a Traveler - Travix</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="modal.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <div class="logo" onclick="window.location.href='travix-landing.html'" style="cursor: pointer;">
+                    <img src="travix-logo.png" alt="Travix Logo">
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="travix-landing.html">Home</a></li>
+                    <li><a href="calculator.html">Calculator</a></li>
+                    <li><a href="travix-landing.html#how-it-works">How it Works</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="help-center.html">Help</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <div id="navAuthButtons">
+                        <a href="signin.html" class="btn-link">Log in</a>
+                        <a href="signup.html" class="btn-primary" style="text-decoration: none; display: inline-block;">Sign up</a>
+                    </div>
+                    <div id="navUserButtons" style="display: none;">
+                        <button class="btn-profile" onclick="window.location.href='user-dashboard.html'">
+                            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="10" cy="7" r="3" fill="currentColor"/>
+                                <path d="M4 17C4 14 7 12 10 12C13 12 16 14 16 17" stroke="currentColor" stroke-width="2" fill="none"/>
+                            </svg>
+                            Profile
+                        </button>
+                        <button class="btn-logout-nav" id="navLogoutBtn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11 3L15 7L11 11M15 7H5M5 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+                <button class="mobile-menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Become a Traveler Section -->
+    <section class="send-item-section">
+        <div class="container">
+            <div class="page-header">
+                <h1>Become a Traveler</h1>
+                <p>Share your trip details and earn money by delivering items to travelers along your route</p>
+            </div>
+
+            <form id="travelerForm" class="send-item-form">
+                <!-- Trip Details Card -->
+                <div class="form-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#F4C542" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M2 17L12 22L22 17" stroke="#F4C542" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M2 12L12 17L22 12" stroke="#F4C542" stroke-width="2" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <h2>Trip Details</h2>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Departure Country</label>
+                            <div class="country-dropdown" id="fromDropdown"></div>
+                            <input type="hidden" id="departureCity" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="departureDate">Departure Date</label>
+                            <input type="date" id="departureDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Arrival Country</label>
+                            <div class="country-dropdown" id="toDropdown"></div>
+                            <input type="hidden" id="arrivalCity" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="arrivalDate">Arrival Date</label>
+                            <input type="date" id="arrivalDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tripDetails">Additional Trip Details (Optional)</label>
+                        <textarea id="tripDetails" rows="3" placeholder="Any layovers or additional stops along the way?"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="travelTicket">Upload Travel Ticket *</label>
+                        <p class="field-description">Upload your flight ticket, train ticket, or travel confirmation to verify your trip</p>
+                        <div class="upload-area" id="ticketUpload">
+                            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M24 16V32M16 24H32" stroke="#F4C542" stroke-width="3" stroke-linecap="round"/>
+                            </svg>
+                            <p>Click to upload your ticket</p>
+                            <span>PDF, PNG, JPG (up to 10MB)</span>
+                            <input type="file" id="travelTicket" accept=".pdf,.png,.jpg,.jpeg" hidden required>
+                        </div>
+                        <button type="button" class="btn-remove-file" id="removeTicket" style="display: none;">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            Remove Ticket
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Delivery Preferences Card -->
+                <div class="form-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="6" y="8" width="12" height="12" rx="2" stroke="#F4C542" stroke-width="2"/>
+                                <path d="M6 14 L18 14" stroke="#F4C542" stroke-width="2"/>
+                                <path d="M12 8 L12 20" stroke="#F4C542" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <h2>Delivery Preferences</h2>
+                    </div>
+
+                    <div class="form-group">
+                        <label>What types of items are you willing to carry? *</label>
+                        <p class="field-description">Select all item types you're comfortable carrying. Choose carefully based on your preferences and airline restrictions.</p>
+                        <div class="category-grid">
+                            <div class="category-item">
+                                <input type="checkbox" name="itemTypes" id="trav-electronics" value="electronics">
+                                <label for="trav-electronics">
+                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="8" y="10" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                                        <path d="M12 26H20" stroke="currentColor" stroke-width="1.5"/>
+                                        <path d="M16 22V26" stroke="currentColor" stroke-width="1.5"/>
+                                    </svg>
+                                    <span>Electronics</span>
+                                </label>
+                            </div>
+                            <div class="category-item">
+                                <input type="checkbox" name="itemTypes" id="trav-documents" value="documents">
+                                <label for="trav-documents">
+                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M10 8H22V24H10V8Z M14 12H18 M14 16H18 M14 20H18" stroke="currentColor" stroke-width="1.5"/>
+                                    </svg>
+                                    <span>Documents</span>
+                                </label>
+                            </div>
+                            <div class="category-item">
+                                <input type="checkbox" name="itemTypes" id="trav-clothing" value="clothing">
+                                <label for="trav-clothing">
+                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M10 12L12 8H20L22 12V24H10V12Z" stroke="currentColor" stroke-width="1.5"/>
+                                    </svg>
+                                    <span>Clothing</span>
+                                </label>
+                            </div>
+                            <div class="category-item">
+                                <input type="checkbox" name="itemTypes" id="trav-gifts" value="gifts">
+                                <label for="trav-gifts">
+                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="8" y="12" width="16" height="12" stroke="currentColor" stroke-width="1.5"/>
+                                        <path d="M8 16H24 M16 12V24" stroke="currentColor" stroke-width="1.5"/>
+                                    </svg>
+                                    <span>Gifts</span>
+                                </label>
+                            </div>
+                            <div class="category-item">
+                                <input type="checkbox" name="itemTypes" id="trav-food" value="food">
+                                <label for="trav-food">
+                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="16" cy="16" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                        <path d="M16 10V22" stroke="currentColor" stroke-width="1.5"/>
+                                    </svg>
+                                    <span>Food Items</span>
+                                </label>
+                            </div>
+                            <div class="category-item">
+                                <input type="checkbox" name="itemTypes" id="trav-books" value="books">
+                                <label for="trav-books">
+                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="10" y="8" width="12" height="16" stroke="currentColor" stroke-width="1.5"/>
+                                        <path d="M12 8V24" stroke="currentColor" stroke-width="1.5"/>
+                                    </svg>
+                                    <span>Books</span>
+                                </label>
+                            </div>
+                            <div class="category-item">
+                                <input type="checkbox" name="itemTypes" id="trav-camera" value="camera">
+                                <label for="trav-camera">
+                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="8" y="12" width="16" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                                        <circle cx="16" cy="17" r="3" stroke="currentColor" stroke-width="1.5"/>
+                                    </svg>
+                                    <span>Camera/Video</span>
+                                </label>
+                            </div>
+                            <div class="category-item">
+                                <input type="checkbox" name="itemTypes" id="trav-audio" value="audio">
+                                <label for="trav-audio">
+                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 10C10 12 10 20 12 22 M20 10C22 12 22 20 20 22" stroke="currentColor" stroke-width="1.5"/>
+                                        <circle cx="16" cy="16" r="2" fill="currentColor"/>
+                                    </svg>
+                                    <span>Audio Gear</span>
+                                </label>
+                            </div>
+                            <div class="category-item">
+                                <input type="checkbox" name="itemTypes" id="trav-accessories" value="accessories">
+                                <label for="trav-accessories">
+                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="16" cy="16" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                        <path d="M12 12L20 20 M20 12L12 20" stroke="currentColor" stroke-width="1.5"/>
+                                    </svg>
+                                    <span>Accessories</span>
+                                </label>
+                            </div>
+                            <div class="category-item">
+                                <input type="checkbox" name="itemTypes" id="trav-medical" value="medical">
+                                <label for="trav-medical">
+                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M16 10V22 M10 16H22" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    <span>Medical Items</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="maxWeight">Maximum Weight You Can Carry (kg)</label>
+                            <input type="number" id="maxWeight" placeholder="e.g., 5" min="1" max="50" step="0.5" required>
+                            <p class="field-helper">Consider airline luggage restrictions when setting this limit</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="pricePerKg">Your Price per kg ($)</label>
+                            <input type="number" id="pricePerKg" placeholder="e.g., 15" min="5" max="50" step="1" required>
+                            <p class="field-helper">Recommended range: $10-20/kg for international trips</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="additionalNotes">Additional Notes (Optional)</label>
+                        <textarea id="additionalNotes" rows="3" placeholder="Any special conditions, preferences, or requirements..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Responsibility Confirmation -->
+                <div class="responsibility-box">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="responsibility" required>
+                        <span>I confirm I am responsible for the items I accept to carry</span>
+                    </label>
+                    <p class="responsibility-text">I understand that I am responsible for safely transporting items I agree to carry. I will verify items before accepting them and will not carry prohibited or illegal items. I agree to Travix terms of service and understand that payment will be released after successful delivery confirmation.</p>
+                </div>
+
+                <!-- Important Information -->
+                <div class="important-info">
+                    <div class="info-header">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" fill="#F59E0B"/>
+                            <path d="M12 8V12M12 16H12.01" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <h3>Important Information</h3>
+                    </div>
+                    <ul>
+                        <li>• You will undergo ID verification before your first delivery</li>
+                        <li>• Payment is held securely and released after delivery confirmation</li>
+                        <li>• You can decline any delivery request that doesn't suit you</li>
+                        <li>• Always check items before accepting them</li>
+                        <li>• Insurance coverage is included for verified items</li>
+                    </ul>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel">Cancel</button>
+                    <button type="submit" class="btn-submit">Post Your Trip</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <div class="footer-logo">
+                        <img src="travix-logo.png" alt="Travix Logo">
+                    </div>
+                    <p>Connecting senders with travelers for affordable, secure deliveries worldwide</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 0C4.477 0 0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.879V12.89h-2.54V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-.443 2.89h-2.33v6.989C16.343 19.128 20 14.991 20 10c0-5.523-4.477-10-10-10z"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="Twitter">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M6.29 18.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0020 3.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.073 4.073 0 01.8 7.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 010 16.407a11.616 11.616 0 006.29 1.84"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="Instagram">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 0C7.284 0 6.944.012 5.877.06 4.813.11 4.086.278 3.45.525a4.917 4.917 0 00-1.772 1.153A4.917 4.917 0 00.525 3.45C.278 4.086.11 4.813.06 5.877.012 6.944 0 7.284 0 10s.012 3.056.06 4.123c.05 1.064.218 1.791.465 2.427a4.917 4.917 0 001.153 1.772 4.917 4.917 0 001.772 1.153c.636.247 1.363.415 2.427.465C6.944 19.988 7.284 20 10 20s3.056-.012 4.123-.06c1.064-.05 1.791-.218 2.427-.465a4.917 4.917 0 001.772-1.153 4.917 4.917 0 001.153-1.772c.247-.636.415-1.363.465-2.427C19.988 13.056 20 12.716 20 10s-.012-3.056-.06-4.123c-.05-1.064-.218-1.791-.465-2.427a4.917 4.917 0 00-1.153-1.772A4.917 4.917 0 0016.55.525C15.914.278 15.187.11 14.123.06 13.056.012 12.716 0 10 0zm0 1.802c2.67 0 2.987.01 4.041.059.976.045 1.505.207 1.858.344.466.181.8.398 1.15.748.35.35.566.684.748 1.15.137.353.3.882.344 1.857.048 1.055.058 1.37.058 4.04 0 2.672-.01 2.987-.058 4.042-.045.975-.207 1.504-.344 1.857a3.097 3.097 0 01-.748 1.15c-.35.35-.684.566-1.15.748-.353.137-.882.3-1.857.344-1.054.048-1.37.058-4.041.058-2.67 0-2.987-.01-4.04-.058-.976-.045-1.505-.207-1.858-.344a3.097 3.097 0 01-1.15-.748 3.097 3.097 0 01-.748-1.15c-.137-.353-.3-.882-.344-1.857-.048-1.055-.058-1.37-.058-4.041 0-2.67.01-2.986.058-4.04.045-.976.207-1.505.344-1.858.181-.466.398-.8.748-1.15.35-.35.684-.566 1.15-.748.353-.137.882-.3 1.857-.344 1.055-.048 1.37-.058 4.041-.058zM10 4.865a5.135 5.135 0 100 10.27 5.135 5.135 0 000-10.27zm0 8.468a3.333 3.333 0 110-6.666 3.333 3.333 0 010 6.666zm5.338-8.67a1.2 1.2 0 100 2.4 1.2 1.2 0 000-2.4z"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="LinkedIn">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M0 1.667C0 .747.746 0 1.667 0h16.666C19.253 0 20 .746 20 1.667v16.666C20 19.253 19.254 20 18.333 20H1.667C.747 20 0 19.254 0 18.333V1.667zM6.261 16.667V7.917H3.225v8.75h3.036zM4.743 6.667c1.061 0 1.723-.703 1.723-1.582-.02-.898-.662-1.583-1.703-1.583-1.04 0-1.723.685-1.723 1.583 0 .879.662 1.582 1.683 1.582h.02zm3.506 10V11.39c0-.273.02-.547.1-.742.22-.547.72-1.113 1.56-1.113 1.1 0 1.54.84 1.54 2.07v4.062h3.036v-4.354c0-2.806-1.498-4.112-3.496-4.112-1.638 0-2.358.916-2.758 1.54h.02V7.918H5.215c.04.858 0 8.75 0 8.75h3.034z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="travix-landing.html">Home</a></li>
+                        <li><a href="travix-landing.html#how-it-works">How it Works</a></li>
+                        <li><a href="send-item.html">Send Items</a></li>
+                        <li><a href="become-traveler.html">Become a Traveler</a></li>
+                        <li><a href="calculator.html">Price Calculator</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="help-center.html">Help Center</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                        <li><a href="terms-of-service.html">Terms of Service</a></li>
+                        <li><a href="safety-guidelines.html">Safety Guidelines</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Contact Us</h4>
+                    <ul class="contact-info">
+                        <li>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M0 4a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H2a2 2 0 01-2-2V4zm2-1a1 1 0 00-1 1v.217l7 4.2 7-4.2V4a1 1 0 00-1-1H2zm13 2.383l-4.758 2.855L15 11.114v-5.73zm-.034 6.878L9.271 8.82 8 9.583 6.728 8.82l-5.694 3.44A1 1 0 002 13h12a1 1 0 00.966-.739zM1 11.114l4.758-2.876L1 5.383v5.73z"/>
+                            </svg>
+                            <span>support@travix.com</span>
+                        </li>
+                        <li>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M3.654 1.328a.678.678 0 00-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 004.168 6.608 17.569 17.569 0 006.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 00-.063-1.015l-2.307-1.794a.678.678 0 00-.58-.122l-2.19.547a1.745 1.745 0 01-1.657-.459L5.482 8.062a1.745 1.745 0 01-.46-1.657l.548-2.19a.678.678 0 00-.122-.58L3.654 1.328z"/>
+                            </svg>
+                            <span>+962 77 542 3322</span>
+                        </li>
+                        <li>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M8 16s6-5.686 6-10A6 6 0 002 6c0 4.314 6 10 6 10zm0-7a3 3 0 110-6 3 3 0 010 6z"/>
+                            </svg>
+                            <span>Amman, Jordan</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Travix. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Cookie Policy</a>
+                    <a href="#">Security</a>
+                    <a href="#">Sitemap</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="modal.js"></script>
+    <script src="js/api-config.js"></script>
+    <script src="become-traveler.js"></script>
+    <script src="navbar-auth.js"></script>
+    <script src="check-auth.js"></script>
+    <script>protectPage("become-traveler.html");</script>
+
+    <style>
+        .country-dropdown { position: relative; width: 100%; }
+        .cd-selected {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid #E5E7EB; border-radius: 10px;
+            background: #fff; cursor: pointer; font-size: 0.95rem; color: #374151;
+            transition: border-color 0.2s; min-height: 48px;
+        }
+        .cd-selected:hover { border-color: #D4AF37; }
+        .cd-arrow { transition: transform 0.2s; flex-shrink: 0; margin-left: 8px; }
+        .cd-panel {
+            display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+            background: #fff; border: 1.5px solid #E5E7EB; border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12); z-index: 9999; overflow: hidden;
+        }
+        .cd-panel.open { display: block; }
+        .cd-search-wrap {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 12px; border-bottom: 1px solid #F3F4F6; background: #FAFAFA;
+        }
+        .cd-search { border: none; outline: none; background: transparent; font-size: 0.9rem; color: #374151; width: 100%; }
+        .cd-list { max-height: 230px; overflow-y: auto; }
+        .cd-list::-webkit-scrollbar { width: 4px; }
+        .cd-list::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 4px; }
+        .cd-region { padding: 6px 12px 4px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; color: #9CA3AF; text-transform: uppercase; background: #F9FAFB; border-top: 1px solid #F3F4F6; }
+        .cd-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; transition: background 0.15s; }
+        .cd-item:hover    { background: #FEF9EC; }
+        .cd-item.selected { background: #FEF3C7; }
+        .cd-name  { flex: 1; font-size: 0.9rem; color: #111827; }
+        .cd-empty { padding: 16px; text-align: center; color: #9CA3AF; font-size: 0.9rem; }
+    </style>
+
+    <script>
+    const COUNTRIES_LIST = [
+        { name: 'Jordan',         code: 'jo', region: 'Arab'     },
+        { name: 'Saudi Arabia',   code: 'sa', region: 'Arab'     },
+        { name: 'UAE',            code: 'ae', region: 'Arab'     },
+        { name: 'Egypt',          code: 'eg', region: 'Arab'     },
+        { name: 'Kuwait',         code: 'kw', region: 'Arab'     },
+        { name: 'Qatar',          code: 'qa', region: 'Arab'     },
+        { name: 'Bahrain',        code: 'bh', region: 'Arab'     },
+        { name: 'Oman',           code: 'om', region: 'Arab'     },
+        { name: 'Lebanon',        code: 'lb', region: 'Arab'     },
+        { name: 'Iraq',           code: 'iq', region: 'Arab'     },
+        { name: 'Syria',          code: 'sy', region: 'Arab'     },
+        { name: 'Tunisia',        code: 'tn', region: 'Arab'     },
+        { name: 'Morocco',        code: 'ma', region: 'Arab'     },
+        { name: 'Algeria',        code: 'dz', region: 'Arab'     },
+        { name: 'Libya',          code: 'ly', region: 'Arab'     },
+        { name: 'Yemen',          code: 'ye', region: 'Arab'     },
+        { name: 'Sudan',          code: 'sd', region: 'Arab'     },
+        { name: 'Turkey',         code: 'tr', region: 'Europe'   },
+        { name: 'Germany',        code: 'de', region: 'Europe'   },
+        { name: 'France',         code: 'fr', region: 'Europe'   },
+        { name: 'United Kingdom', code: 'gb', region: 'Europe'   },
+        { name: 'Italy',          code: 'it', region: 'Europe'   },
+        { name: 'Spain',          code: 'es', region: 'Europe'   },
+        { name: 'Netherlands',    code: 'nl', region: 'Europe'   },
+        { name: 'Poland',         code: 'pl', region: 'Europe'   },
+        { name: 'Sweden',         code: 'se', region: 'Europe'   },
+        { name: 'Norway',         code: 'no', region: 'Europe'   },
+        { name: 'Switzerland',    code: 'ch', region: 'Europe'   },
+        { name: 'Greece',         code: 'gr', region: 'Europe'   },
+        { name: 'United States',  code: 'us', region: 'Americas' },
+        { name: 'Canada',         code: 'ca', region: 'Americas' },
+        { name: 'Mexico',         code: 'mx', region: 'Americas' },
+        { name: 'Brazil',         code: 'br', region: 'Americas' },
+    ];
+
+    function cdFlagImg(code) {
+        return `<img src="https://flagcdn.com/w20/${code}.png" width="20" height="15"
+                style="border-radius:2px;object-fit:cover;vertical-align:middle;margin-right:6px;"
+                onerror="this.style.display='none'">`;
+    }
+
+    function buildCountryDropdown(wrapperId, hiddenId, placeholder) {
+        const wrapper = document.getElementById(wrapperId);
+        if (!wrapper) return;
+        let open = false;
+        let selected = null;
+
+        function toggle() {
+            open = !open;
+            document.getElementById(wrapperId + '_panel').classList.toggle('open', open);
+            document.getElementById(wrapperId + '_arrow').style.transform = open ? 'rotate(180deg)' : '';
+            if (open) setTimeout(() => document.getElementById(wrapperId + '_search').focus(), 50);
+        }
+
+        function select(code) {
+            selected = COUNTRIES_LIST.find(c => c.code === code);
+            document.getElementById(wrapperId + '_txt').innerHTML =
+                cdFlagImg(selected.code) + '<span style="color:#111">' + selected.name + '</span>';
+            document.getElementById(hiddenId).value = selected.name;
+            open = false;
+            document.getElementById(wrapperId + '_panel').classList.remove('open');
+            document.getElementById(wrapperId + '_arrow').style.transform = '';
+            document.getElementById(wrapperId + '_search').value = '';
+            renderCdList(COUNTRIES_LIST, wrapperId, selected, select);
+        }
+
+        function filter(val) {
+            const q = val.trim().toLowerCase();
+            renderCdList(q ? COUNTRIES_LIST.filter(c => c.name.toLowerCase().includes(q)) : COUNTRIES_LIST, wrapperId, selected, select);
+        }
+
+        wrapper.innerHTML = `
+            <div class="cd-selected" onclick="cdInstances['${wrapperId}'].toggle()">
+                <span id="${wrapperId}_txt" style="color:#9CA3AF">${placeholder}</span>
+                <svg class="cd-arrow" id="${wrapperId}_arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M4 6L8 10L12 6" stroke="#6B7280" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="cd-panel" id="${wrapperId}_panel">
+                <div class="cd-search-wrap">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                        <circle cx="7" cy="7" r="5" stroke="#9CA3AF" stroke-width="1.5"/>
+                        <path d="M11 11L14 14" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <input class="cd-search" id="${wrapperId}_search" placeholder="Search country..."
+                           oninput="cdInstances['${wrapperId}'].filter(this.value)" autocomplete="off">
+                </div>
+                <div class="cd-list" id="${wrapperId}_list"></div>
+            </div>`;
+
+        window.cdInstances = window.cdInstances || {};
+        window.cdInstances[wrapperId] = { toggle, select, filter };
+        renderCdList(COUNTRIES_LIST, wrapperId, selected, select);
+
+        document.addEventListener('click', function(e) {
+            if (!wrapper.contains(e.target)) {
+                open = false;
+                document.getElementById(wrapperId + '_panel')?.classList.remove('open');
+                if (document.getElementById(wrapperId + '_arrow'))
+                    document.getElementById(wrapperId + '_arrow').style.transform = '';
+            }
+        });
+    }
+
+    function renderCdList(list, wrapperId, selected, selectFn) {
+        const el = document.getElementById(wrapperId + '_list');
+        if (!el) return;
+        if (!list.length) { el.innerHTML = '<div class="cd-empty">No results found</div>'; return; }
+        const regions = [...new Set(list.map(c => c.region))];
+        el.innerHTML = regions.map(region => `
+            <div class="cd-region">${region}</div>
+            ${list.filter(c => c.region === region).map(c => `
+                <div class="cd-item ${selected?.code === c.code ? 'selected' : ''}"
+                     onclick="cdInstances['${wrapperId}'].select('${c.code}')">
+                    ${cdFlagImg(c.code)}
+                    <span class="cd-name">${c.name}</span>
+                </div>`).join('')}
+        `).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        buildCountryDropdown('fromDropdown', 'departureCity', 'Select departure country');
+        buildCountryDropdown('toDropdown',   'arrivalCity',   'Select arrival country');
+    });
+    </script>
+</body>
+</html>

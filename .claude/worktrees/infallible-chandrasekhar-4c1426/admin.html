@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Access - Travix</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="modal.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <div class="logo" onclick="window.location.href='travix-landing.html'" style="cursor: pointer;">
+                    <img src="travix-logo.png" alt="Travix Logo">
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="travix-landing.html">Home</a></li>
+                    <li><a href="calculator.html">Calculator</a></li>
+                    <li><a href="travix-landing.html#how-it-works">How it Works</a></li>
+                    <li><a href="travix-landing.html#about">About</a></li>
+                    <li><a href="travix-landing.html#help">Help</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <a href="signin.html" class="btn-link">Log In</a>
+                    <a href="signup.html" class="btn-primary" style="text-decoration: none; display: inline-block;">Sign Up</a>
+                </div>
+                <button class="mobile-menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Admin Access Section -->
+    <section class="signin-section">
+        <div class="signin-container">
+            <div class="signin-card">
+                <!-- Shield Icon -->
+                <div class="signin-icon">
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="80" height="80" rx="16" fill="#1A2B4A"/>
+                        <path d="M40 25 L50 30 V42 C50 50 45 55 40 60 C35 55 30 50 30 42 V30 L40 25Z" fill="none" stroke="white" stroke-width="2.5"/>
+                    </svg>
+                </div>
+
+                <!-- Title Text -->
+                <h1 class="signin-title">Admin Access</h1>
+                <p class="signin-subtitle">Secure login for authorized administrators only</p>
+
+                <!-- Admin Login Form -->
+                <form class="signin-form" id="adminForm">
+                    <div class="form-group">
+                        <label for="adminEmail">Admin Email</label>
+                        <input 
+                            type="email" 
+                            id="adminEmail" 
+                            name="adminEmail" 
+                            placeholder="admin@travix.com"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="adminPassword">Admin Password</label>
+                        <input 
+                            type="password" 
+                            id="adminPassword" 
+                            name="adminPassword" 
+                            placeholder="Enter admin password"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit" class="btn-signin admin-btn-submit">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline-block; margin-right: 8px; vertical-align: middle;">
+                            <path d="M10 5 L13 8 V13 C13 15 12 16 10 17 C8 16 7 15 7 13 V8 L10 5Z" fill="none" stroke="white" stroke-width="1.5"/>
+                        </svg>
+                        Access Admin Dashboard
+                    </button>
+
+                    <div class="back-to-home">
+                        <a href="travix-landing.html">← Back to Home</a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </section>
+
+    <script src="modal.js"></script>
+    <script src="js/api-config.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

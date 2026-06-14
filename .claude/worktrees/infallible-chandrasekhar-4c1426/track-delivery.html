@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Your Delivery - Travix</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="modal.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <div class="logo" onclick="window.location.href='travix-landing.html'" style="cursor: pointer;">
+                    <img src="travix-logo.png" alt="Travix Logo">
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="travix-landing.html">Home</a></li>
+                    <li><a href="calculator.html">Calculator</a></li>
+                    <li><a href="travix-landing.html#how-it-works">How it Works</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="help-center.html">Help</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <div id="navAuthButtons">
+                        <a href="signin.html" class="btn-link">Log in</a>
+                        <a href="signup.html" class="btn-primary" style="text-decoration: none; display: inline-block;">Sign up</a>
+                    </div>
+                    <div id="navUserButtons" style="display: none;">
+                        <button class="btn-profile" onclick="window.location.href='user-dashboard.html'">
+                            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="10" cy="7" r="3" fill="currentColor"/>
+                                <path d="M4 17C4 14 7 12 10 12C13 12 16 14 16 17" stroke="currentColor" stroke-width="2" fill="none"/>
+                            </svg>
+                            Profile
+                        </button>
+                        <button class="btn-logout-nav" id="navLogoutBtn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11 3L15 7L11 11M15 7H5M5 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+                <button class="mobile-menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Track Delivery Section -->
+    <section class="track-delivery-section">
+        <div class="container">
+            <!-- Header -->
+            <div class="track-header">
+                <div>
+                    <h1>Track Your Delivery</h1>
+                    <p class="order-id">Order ID: <span id="orderId">TRX-2024-001234</span></p>
+                </div>
+                <div class="status-badge-header in-transit">In Transit</div>
+            </div>
+
+            <div class="track-grid">
+                <!-- Left Column: Status & Details -->
+                <div class="track-main-column">
+                    <!-- Delivery Status Timeline -->
+                    <div class="track-card">
+                        <h2 class="card-title">Delivery Status</h2>
+                        
+                        <div class="status-timeline">
+                            <!-- Step 1: Requested -->
+                            <div class="timeline-step completed">
+                                <div class="step-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                <div class="step-content">
+                                    <div class="step-header">
+                                        <h3>Requested</h3>
+                                        <span class="step-badge completed">Completed</span>
+                                    </div>
+                                    <p class="step-description">Request submitted</p>
+                                    <p class="step-date">✓ Completed on Dec 12, 2024</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 2: Accepted -->
+                            <div class="timeline-step completed">
+                                <div class="step-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                </div>
+                                <div class="step-content">
+                                    <div class="step-header">
+                                        <h3>Accepted</h3>
+                                        <span class="step-badge completed">Completed</span>
+                                    </div>
+                                    <p class="step-description">Traveler confirmed</p>
+                                    <p class="step-date">✓ Completed on Dec 13, 2024</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Picked Up -->
+                            <div class="timeline-step completed">
+                                <div class="step-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="4" y="8" width="16" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M8 8V6C8 4.9 8.9 4 10 4H14C15.1 4 16 4.9 16 6V8" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                </div>
+                                <div class="step-content">
+                                    <div class="step-header">
+                                        <h3>Picked Up</h3>
+                                        <span class="step-badge completed">Completed</span>
+                                    </div>
+                                    <p class="step-description">Item collected</p>
+                                    <p class="step-date">✓ Completed on Dec 14, 2024</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 4: In Transit -->
+                            <div class="timeline-step active">
+                                <div class="step-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M3 12h18M12 3l9 9-9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <div class="step-content">
+                                    <div class="step-header">
+                                        <h3>In Transit</h3>
+                                        <span class="step-badge current">Current</span>
+                                    </div>
+                                    <p class="step-description">On the way</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 5: Delivered -->
+                            <div class="timeline-step pending">
+                                <div class="step-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                <div class="step-content">
+                                    <div class="step-header">
+                                        <h3>Delivered</h3>
+                                    </div>
+                                    <p class="step-description">Successfully delivered</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delivery Details -->
+                    <div class="track-card">
+                        <h2 class="card-title">Delivery Details</h2>
+                        
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <label>Item</label>
+                                <p class="detail-value">iPhone 15 Pro</p>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <label>To</label>
+                                <p class="detail-value">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M8 3C6 3 4.5 4.5 4.5 6.5C4.5 7.5 5 8.5 5.5 9L8 13L10.5 9C11 8.5 11.5 7.5 11.5 6.5C11.5 4.5 10 3 8 3Z" fill="#D4AF37"/>
+                                        <circle cx="8" cy="6.5" r="1.5" fill="white"/>
+                                    </svg>
+                                    Paris, France
+                                </p>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <label>Weight</label>
+                                <p class="detail-value">0.5 kg</p>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <label>Pickup Date</label>
+                                <p class="detail-value">2024-12-15</p>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <label>From</label>
+                                <p class="detail-value">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M8 3C6 3 4.5 4.5 4.5 6.5C4.5 7.5 5 8.5 5.5 9L8 13L10.5 9C11 8.5 11.5 7.5 11.5 6.5C11.5 4.5 10 3 8 3Z" fill="#D4AF37"/>
+                                        <circle cx="8" cy="6.5" r="1.5" fill="white"/>
+                                    </svg>
+                                    New York, USA
+                                </p>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <label>Est. Delivery</label>
+                                <p class="detail-value highlight">2024-12-18</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Location Map -->
+                    <div class="track-card">
+                        <h2 class="card-title">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10 4C7 4 4.5 6.5 4.5 9.5C4.5 11 5.5 12.5 6.5 13.5L10 18L13.5 13.5C14.5 12.5 15.5 11 15.5 9.5C15.5 6.5 13 4 10 4Z" fill="#D4AF37"/>
+                                <circle cx="10" cy="9.5" r="2" fill="white"/>
+                            </svg>
+                            Current Location
+                        </h2>
+                        
+                        <div class="map-placeholder">
+                            <div class="map-background"></div>
+                            <div class="map-content">
+                                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M40 20C30 20 22 28 22 38C22 44 26 50 30 54L40 70L50 54C54 50 58 44 58 38C58 28 50 20 40 20Z" fill="#D4AF37"/>
+                                    <circle cx="40" cy="38" r="8" fill="white"/>
+                                </svg>
+                                <h3>Map View</h3>
+                                <p>Live tracking coming soon</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Help & Info -->
+                <div class="track-sidebar">
+                    <!-- Need Help Card -->
+                    <div class="track-card help-card">
+                        <h3>Need Help?</h3>
+                        <p>Our support team is available 24/7 to assist you with any questions or concerns.</p>
+                        <button class="btn-contact-support" onclick="window.location.href='help-center.html'">
+                            Contact Support
+                        </button>
+                    </div>
+
+                    <!-- Traveler Info Card -->
+                    <div class="track-card traveler-info-card">
+                        <h3>Your Traveler</h3>
+                        <div class="traveler-profile">
+                            <div class="traveler-avatar-large">MC</div>
+                            <div class="traveler-details">
+                                <h4>Michael Chen</h4>
+                                <div class="traveler-rating">
+                                    <span class="star">⭐</span>
+                                    <strong>4.9</strong>
+                                    <span>(62 trips)</span>
+                                </div>
+                                <div class="trust-badge">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="8" cy="8" r="8" fill="#10B981"/>
+                                        <path d="M5 8L7 10L11 6" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    Verified Traveler
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn-message-traveler">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16 2H2C1.45 2 1 2.45 1 3V15L4 12H16C16.55 12 17 11.55 17 11V3C17 2.45 16.55 2 16 2Z" stroke="currentColor" stroke-width="1.5"/>
+                                <circle cx="5" cy="7" r="1" fill="currentColor"/>
+                                <circle cx="9" cy="7" r="1" fill="currentColor"/>
+                                <circle cx="13" cy="7" r="1" fill="currentColor"/>
+                            </svg>
+                            Message Traveler
+                        </button>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="track-card quick-actions-card">
+                        <h3>Quick Actions</h3>
+                        <button class="quick-action-btn">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16 2H2C1.45 2 1 2.45 1 3V15L4 12H16C16.55 12 17 11.55 17 11V3C17 2.45 16.55 2 16 2Z" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            Report Issue
+                        </button>
+                        <button class="quick-action-btn">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M9 5V9L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            Update Delivery Time
+                        </button>
+                        <button class="quick-action-btn">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="3" y="3" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M3 8H15M9 8V15" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            View Receipt
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <div class="footer-logo">
+                        <img src="travix-logo.png" alt="Travix Logo">
+                    </div>
+                    <p>Connecting senders with travelers for affordable, secure deliveries worldwide.</p>
+                    
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M18.9 0H1.1C.5 0 0 .5 0 1.1v17.8c0 .6.5 1.1 1.1 1.1h9.6v-7.7H8.1V9.3h2.6V7c0-2.6 1.6-4 3.9-4 1.1 0 2.1.1 2.3.1v2.7h-1.6c-1.3 0-1.5.6-1.5 1.5v2h3l-.4 3h-2.6V20h5.1c.6 0 1.1-.5 1.1-1.1V1.1c0-.6-.5-1.1-1.1-1.1z"/></svg></a>
+                        <a href="#" aria-label="Twitter"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M6.29 18.25c7.55 0 11.67-6.25 11.67-11.67 0-.18 0-.35-.01-.53A8.35 8.35 0 0020 3.92a8.18 8.18 0 01-2.36.65 4.12 4.12 0 001.8-2.27 8.22 8.22 0 01-2.6 1 4.1 4.1 0 00-7 3.74A11.65 11.65 0 011.39 2.62a4.1 4.1 0 001.27 5.48A4.07 4.07 0 01.8 7.71v.05a4.1 4.1 0 003.29 4.02 4.1 4.1 0 01-1.85.07 4.1 4.1 0 003.83 2.85A8.23 8.23 0 010 16.67a11.62 11.62 0 006.29 1.84"/></svg></a>
+                        <a href="#" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.8c2.67 0 2.99.01 4.04.06 1.05.05 1.77.21 2.4.45.65.25 1.2.59 1.75 1.14.55.55.89 1.1 1.14 1.75.24.63.4 1.35.45 2.4.05 1.05.06 1.37.06 4.04s-.01 2.99-.06 4.04c-.05 1.05-.21 1.77-.45 2.4-.25.65-.59 1.2-1.14 1.75-.55.55-1.1.89-1.75 1.14-.63.24-1.35.4-2.4.45-1.05.05-1.37.06-4.04.06s-2.99-.01-4.04-.06c-1.05-.05-1.77-.21-2.4-.45a4.83 4.83 0 01-1.75-1.14 4.83 4.83 0 01-1.14-1.75c-.24-.63-.4-1.35-.45-2.4C1.81 12.99 1.8 12.67 1.8 10s.01-2.99.06-4.04c.05-1.05.21-1.77.45-2.4.25-.65.59-1.2 1.14-1.75A4.83 4.83 0 015.2 .67c.63-.24 1.35-.4 2.4-.45C8.65 1.81 8.97 1.8 10 1.8zM10 0C7.28 0 6.94.01 5.88.06 4.82.11 4.07.28 3.42.53a6.63 6.63 0 00-2.4 1.56A6.63 6.63 0 00.53 3.42C.28 4.07.11 4.82.06 5.88.01 6.94 0 7.28 0 10s.01 3.06.06 4.12c.05 1.06.22 1.81.47 2.46.26.66.61 1.22 1.09 1.77.55.55 1.11.83 1.77 1.09.65.25 1.4.42 2.46.47C6.94 19.99 7.28 20 10 20s3.06-.01 4.12-.06c1.06-.05 1.81-.22 2.46-.47a6.34 6.34 0 001.77-1.09 6.34 6.34 0 001.09-1.77c.25-.65.42-1.4.47-2.46.05-1.06.06-1.4.06-4.12s-.01-3.06-.06-4.12c-.05-1.06-.22-1.81-.47-2.46a6.34 6.34 0 00-1.09-1.77 6.34 6.34 0 00-1.77-1.09C15.93.28 15.18.11 14.12.06 13.06.01 12.72 0 10 0z"/><path d="M10 4.86a5.14 5.14 0 100 10.28 5.14 5.14 0 000-10.28zm0 8.48a3.34 3.34 0 110-6.68 3.34 3.34 0 010 6.68zM16.54 4.65a1.2 1.2 0 11-2.4 0 1.2 1.2 0 012.4 0z"/></svg></a>
+                        <a href="#" aria-label="LinkedIn"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M18.52 0H1.48C.66 0 0 .65 0 1.45v17.1C0 19.35.66 20 1.48 20h17.04c.82 0 1.48-.65 1.48-1.45V1.45C20 .65 19.34 0 18.52 0zM5.93 17.04H2.97V7.5h2.96v9.54zM4.45 6.19c-.95 0-1.72-.77-1.72-1.72s.77-1.72 1.72-1.72 1.72.77 1.72 1.72-.77 1.72-1.72 1.72zM17.04 17.04h-2.96v-4.64c0-1.11-.02-2.53-1.54-2.53-1.54 0-1.78 1.21-1.78 2.45v4.72H7.8V7.5h2.84v1.3h.04c.4-.75 1.36-1.54 2.8-1.54 2.99 0 3.54 1.97 3.54 4.53v5.25z"/></svg></a>
+                    </div>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="travix-landing.html">Home</a></li>
+                        <li><a href="travix-landing.html#how-it-works">How it Works</a></li>
+                        <li><a href="send-item.html">Send Items</a></li>
+                        <li><a href="become-traveler.html">Become a Traveler</a></li>
+                        <li><a href="calculator.html">Price Calculator</a></li>
+                        <li><a href="available-travelers.html">View Requests</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="help-center.html">Help Center</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                        <li><a href="terms-of-service.html">Terms of Service</a></li>
+                        <li><a href="safety-guidelines.html">Safety Guidelines</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Contact Us</h4>
+                    <ul class="contact-info">
+                        <li>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M0 4a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H2a2 2 0 01-2-2V4zm2-1a1 1 0 00-1 1v.217l7 4.2 7-4.2V4a1 1 0 00-1-1H2zm13 2.383l-4.758 2.855L15 11.114v-5.73zm-.034 6.878L9.271 8.82 8 9.583 6.728 8.82l-5.694 3.44A1 1 0 002 13h12a1 1 0 00.966-.739zM1 11.114l4.758-2.876L1 5.383v5.73z"/>
+                            </svg>
+                            <span>support@travix.com</span>
+                        </li>
+                        <li>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M3.654 1.328a.678.678 0 00-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 004.168 6.608 17.569 17.569 0 006.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 00-.063-1.015l-2.307-1.794a.678.678 0 00-.58-.122l-2.19.547a1.745 1.745 0 01-1.657-.459L5.482 8.062a1.745 1.745 0 01-.46-1.657l.548-2.19a.678.678 0 00-.122-.58L3.654 1.328z"/>
+                            </svg>
+                            <span>+962 77 542 3322</span>
+                        </li>
+                        <li>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M8 16s6-5.686 6-10A6 6 0 002 6c0 4.314 6 10 6 10zm0-7a3 3 0 110-6 3 3 0 010 6z"/>
+                            </svg>
+                            <span>Amman, Jordan</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2025 Travix. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Cookie Policy</a>
+                    <a href="#">Security</a>
+                    <a href="#">Sitemap</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="check-auth.js"></script>
+    <script src="navbar-auth.js"></script>
+    <script src="modal.js"></script>
+    <script src="track-delivery.js"></script>
+</body>
+</html>

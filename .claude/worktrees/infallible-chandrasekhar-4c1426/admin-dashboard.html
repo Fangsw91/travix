@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Travix</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="modal.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <div class="container">
+            <div class="admin-header-content">
+                <h1 class="admin-brand">TRAVIX ADMIN</h1>
+                <button class="btn-exit-admin">Exit Admin</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Dashboard Content -->
+    <main class="admin-main">
+        <div class="container">
+            <!-- Page Title -->
+            <div class="dashboard-header">
+                <div>
+                    <h2 class="dashboard-title">Admin Dashboard</h2>
+                    <p class="dashboard-subtitle">Manage users, shipments, and platform operations</p>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M14 14C16.7614 14 19 11.7614 19 9C19 6.23858 16.7614 4 14 4C11.2386 4 9 6.23858 9 9C9 11.7614 11.2386 14 14 14Z" fill="white"/>
+                            <path d="M22 24C22 19.5817 18.4183 16 14 16C9.58172 16 6 19.5817 6 24" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="stat-badge green">+12%</div>
+                    <div class="stat-value">2,847</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon gold">
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 12L14 8L20 12L14 16L8 12Z" stroke="white" stroke-width="2" stroke-linejoin="round" fill="white"/>
+                            <path d="M8 16L14 20L20 16" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="stat-badge green">+8%</div>
+                    <div class="stat-value">156</div>
+                    <div class="stat-label">Active Shipments</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon green-icon">
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <text x="14" y="20" text-anchor="middle" fill="white" font-size="18" font-weight="bold">$</text>
+                        </svg>
+                    </div>
+                    <div class="stat-badge green">+23%</div>
+                    <div class="stat-value">$24,580</div>
+                    <div class="stat-label">Revenue (Month)</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon navy">
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 20L12 14L16 18L22 8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="stat-badge green">+2%</div>
+                    <div class="stat-value">94.2%</div>
+                    <div class="stat-label">Completion Rate</div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-btn active" data-tab="users">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 10C12.7614 10 15 7.76142 15 5C15 2.23858 12.7614 0 10 0C7.23858 0 5 2.23858 5 5C5 7.76142 7.23858 10 10 10Z" fill="currentColor"/>
+                        <path d="M18 20C18 15.5817 14.4183 12 10 12C5.58172 12 2 15.5817 2 20" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Users
+                </button>
+                <button class="tab-btn" data-tab="shipments">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 8L10 4L16 8L10 12L4 8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M4 12L10 16L16 12" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                    Shipments
+                </button>
+                <button class="tab-btn" data-tab="requests">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <circle cx="10" cy="10" r="3" fill="currentColor"/>
+                    </svg>
+                    Requests
+                </button>
+                <button class="tab-btn" data-tab="payments">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <text x="10" y="14" text-anchor="middle" fill="currentColor" font-size="14" font-weight="bold">$</text>
+                    </svg>
+                    Payments
+                </button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Users Tab -->
+                <div class="tab-pane active" id="users-tab">
+                    <div class="content-card">
+                        <div class="content-header">
+                            <h3>User Management</h3>
+                            <div class="content-actions">
+                                <div class="search-box">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="7" cy="7" r="5" stroke="#6B7280" stroke-width="2"/>
+                                        <path d="M11 11L14 14" stroke="#6B7280" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    <input type="text" placeholder="Search users..." id="searchUsers">
+                                </div>
+                                <button class="btn-export">Export</button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>User Type</th>
+                                        <th>Status</th>
+                                        <th>Joined</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>John Doe</td>
+                                        <td>john@example.com</td>
+                                        <td><span class="badge badge-gold">Both</span></td>
+                                        <td><span class="badge badge-green">Verified</span></td>
+                                        <td>Jan 2024</td>
+                                        <td><button class="btn-actions">⋮</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Sarah Smith</td>
+                                        <td>sarah@example.com</td>
+                                        <td><span class="badge badge-gold">Sender</span></td>
+                                        <td><span class="badge badge-green">Verified</span></td>
+                                        <td>Feb 2024</td>
+                                        <td><button class="btn-actions">⋮</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Mike Chen</td>
+                                        <td>mike@example.com</td>
+                                        <td><span class="badge badge-gold">Traveler</span></td>
+                                        <td><span class="badge badge-yellow">Pending</span></td>
+                                        <td>Mar 2024</td>
+                                        <td><button class="btn-actions">⋮</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Emma Wilson</td>
+                                        <td>emma@example.com</td>
+                                        <td><span class="badge badge-gold">Both</span></td>
+                                        <td><span class="badge badge-green">Verified</span></td>
+                                        <td>Jan 2024</td>
+                                        <td><button class="btn-actions">⋮</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipments Tab -->
+                <div class="tab-pane" id="shipments-tab">
+                    <div class="content-card">
+                        <div class="content-header">
+                            <h3>Shipment Management</h3>
+                            <div class="content-actions">
+                                <div class="search-box">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="7" cy="7" r="5" stroke="#6B7280" stroke-width="2"/>
+                                        <path d="M11 11L14 14" stroke="#6B7280" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    <input type="text" placeholder="Search shipments...">
+                                </div>
+                                <button class="btn-export">Filter</button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Shipment ID</th>
+                                        <th>Sender</th>
+                                        <th>Traveler</th>
+                                        <th>Route</th>
+                                        <th>Status</th>
+                                        <th>Amount</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>SH-001</td>
+                                        <td>John Doe</td>
+                                        <td>Sarah Smith</td>
+                                        <td>NYC → London</td>
+                                        <td><span class="badge badge-blue">In Transit</span></td>
+                                        <td>$45</td>
+                                        <td><button class="btn-actions">⋮</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SH-002</td>
+                                        <td>Mike Chen</td>
+                                        <td>Emma Wilson</td>
+                                        <td>Paris → Tokyo</td>
+                                        <td><span class="badge badge-green">Delivered</span></td>
+                                        <td>$78</td>
+                                        <td><button class="btn-actions">⋮</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SH-003</td>
+                                        <td>Sarah Smith</td>
+                                        <td>John Doe</td>
+                                        <td>Berlin → NYC</td>
+                                        <td><span class="badge badge-yellow">Pending</span></td>
+                                        <td>$62</td>
+                                        <td><button class="btn-actions">⋮</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SH-004</td>
+                                        <td>Emma Wilson</td>
+                                        <td>Mike Chen</td>
+                                        <td>London → Dubai</td>
+                                        <td><span class="badge badge-blue">In Transit</span></td>
+                                        <td>$55</td>
+                                        <td><button class="btn-actions">⋮</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Requests Tab -->
+                <div class="tab-pane" id="requests-tab">
+                    <div class="content-card">
+                        <h3 style="margin-bottom: 1.5rem;">Pending Requests</h3>
+                        <div class="requests-list">
+                            <div class="request-item">
+                                <div class="request-info">
+                                    <div class="request-id">
+                                        REQ-101
+                                        <span class="priority-badge high">High</span>
+                                    </div>
+                                    <div class="request-desc">Alex Johnson - ID Verification</div>
+                                </div>
+                                <div class="request-actions-buttons">
+                                    <button class="btn-review">Review</button>
+                                    <button class="btn-resolve">Resolve</button>
+                                </div>
+                            </div>
+
+                            <div class="request-item">
+                                <div class="request-info">
+                                    <div class="request-id">
+                                        REQ-102
+                                        <span class="priority-badge high">High</span>
+                                    </div>
+                                    <div class="request-desc">Lisa Brown - Dispute Resolution</div>
+                                </div>
+                                <div class="request-actions-buttons">
+                                    <button class="btn-review">Review</button>
+                                    <button class="btn-resolve">Resolve</button>
+                                </div>
+                            </div>
+
+                            <div class="request-item">
+                                <div class="request-info">
+                                    <div class="request-id">
+                                        REQ-103
+                                        <span class="priority-badge medium">Medium</span>
+                                    </div>
+                                    <div class="request-desc">Tom Davis - Account Issue</div>
+                                </div>
+                                <div class="request-actions-buttons">
+                                    <button class="btn-review">Review</button>
+                                    <button class="btn-resolve">Resolve</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payments Tab -->
+                <div class="tab-pane" id="payments-tab">
+                    <div class="payments-grid">
+                        <div class="content-card">
+                            <h3 style="margin-bottom: 1.5rem;">Revenue Overview</h3>
+                            <div class="revenue-list">
+                                <div class="revenue-item">
+                                    <span>Total Revenue (2024)</span>
+                                    <strong>$284,560</strong>
+                                </div>
+                                <div class="revenue-item">
+                                    <span>This Month</span>
+                                    <strong class="text-green">$24,580</strong>
+                                </div>
+                                <div class="revenue-item">
+                                    <span>Last Month</span>
+                                    <strong>$19,420</strong>
+                                </div>
+                                <div class="revenue-item">
+                                    <span>Platform Fee (15%)</span>
+                                    <strong>$42,684</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="content-card">
+                            <h3 style="margin-bottom: 1.5rem;">Payment Status</h3>
+                            <div class="revenue-list">
+                                <div class="revenue-item">
+                                    <span>Pending Payouts</span>
+                                    <strong class="text-gold">$8,450</strong>
+                                </div>
+                                <div class="revenue-item">
+                                    <span>Processing</span>
+                                    <strong class="text-blue">$3,240</strong>
+                                </div>
+                                <div class="revenue-item">
+                                    <span>Completed</span>
+                                    <strong class="text-green">$272,870</strong>
+                                </div>
+                                <div class="revenue-item">
+                                    <span>Disputed</span>
+                                    <strong class="text-red">$1,240</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-card" style="margin-top: 1.5rem;">
+                        <div class="content-header">
+                            <h3>Recent Transactions</h3>
+                            <button class="btn-view-all">View All</button>
+                        </div>
+                        <div class="transactions-list">
+                            <div class="transaction-item">
+                                <div>
+                                    <div class="transaction-id">TXN-445</div>
+                                    <div class="transaction-name">Sarah Smith</div>
+                                </div>
+                                <div class="transaction-right">
+                                    <div class="transaction-amount text-green">+$45.00</div>
+                                    <div class="transaction-date">Dec 12, 2024</div>
+                                </div>
+                            </div>
+
+                            <div class="transaction-item">
+                                <div>
+                                    <div class="transaction-id">TXN-444</div>
+                                    <div class="transaction-name">Mike Chen</div>
+                                </div>
+                                <div class="transaction-right">
+                                    <div class="transaction-amount text-green">+$78.00</div>
+                                    <div class="transaction-date">Dec 11, 2024</div>
+                                </div>
+                            </div>
+
+                            <div class="transaction-item">
+                                <div>
+                                    <div class="transaction-id">TXN-443</div>
+                                    <div class="transaction-name">Emma Wilson</div>
+                                </div>
+                                <div class="transaction-right">
+                                    <div class="transaction-amount text-green">+$62.00</div>
+                                    <div class="transaction-date">Dec 10, 2024</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="modal.js"></script>
+    <script src="admin-dashboard.js"></script>
+</body>
+</html>

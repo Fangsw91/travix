@@ -1,0 +1,293 @@
+/* ============================================
+   SIMPLE SAFETY GUIDELINES PAGE
+   ============================================ */
+
+.safety-section-simple {
+    padding: 8rem 0 5rem;
+    background: #f8f9fa;
+}
+
+/* Hero */
+.safety-hero-simple {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.hero-icon-simple {
+    margin-bottom: 1.5rem;
+}
+
+.safety-hero-simple h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+}
+
+.safety-hero-simple p {
+    font-size: 1.2rem;
+    color: var(--text-light);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Main Content */
+.safety-content-simple {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* Section Cards */
+.safety-section-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.safety-section-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(212, 175, 55, 0.15);
+    border-color: #D4AF37;
+}
+
+.section-header-simple {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.section-header-simple h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin: 0;
+}
+
+/* Lists */
+.safety-list-simple {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.list-group-simple h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+}
+
+.list-group-simple ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.list-group-simple ul li {
+    padding: 0.6rem 0 0.6rem 1.5rem;
+    position: relative;
+    color: var(--text-dark);
+    line-height: 1.6;
+}
+
+.list-group-simple ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 1rem;
+    width: 6px;
+    height: 6px;
+    background: #D4AF37;
+    border-radius: 50%;
+}
+
+/* Warning Style */
+.list-group-simple.warning {
+    background: #FEF3C7;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid #F59E0B;
+}
+
+.list-group-simple.warning h3 {
+    color: #92400E;
+}
+
+.list-group-simple.warning ul li {
+    color: #92400E;
+    font-weight: 500;
+}
+
+.list-group-simple.warning ul li::before {
+    background: #F59E0B;
+}
+
+/* Mini Cards Grid */
+.safety-grid-simple {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.safety-mini-simple {
+    background: white;
+    border-radius: 12px;
+    padding: 1.8rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.safety-mini-simple:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 24px rgba(212, 175, 55, 0.2);
+    border-color: #D4AF37;
+}
+
+.safety-mini-simple svg {
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.safety-mini-simple:hover svg {
+    transform: scale(1.1);
+}
+
+.safety-mini-simple h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+}
+
+.safety-mini-simple ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+
+.safety-mini-simple ul li {
+    padding: 0.4rem 0 0.4rem 1.2rem;
+    position: relative;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+}
+
+.safety-mini-simple ul li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #D4AF37;
+    font-weight: bold;
+}
+
+/* Remove special emergency styling - make it match others */
+.safety-mini-simple.emergency {
+    background: white;
+    border: 2px solid transparent;
+}
+
+.safety-mini-simple.emergency:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 24px rgba(212, 175, 55, 0.2);
+    border-color: #D4AF37;
+}
+
+.safety-mini-simple.emergency svg {
+    transition: transform 0.3s ease;
+}
+
+.safety-mini-simple.emergency:hover svg {
+    transform: scale(1.1);
+}
+
+.contact-simple {
+    text-align: left;
+}
+
+.contact-simple p {
+    margin: 0.6rem 0;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+}
+
+.contact-simple strong {
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+/* Bottom Banner */
+.safety-banner-simple {
+    background: linear-gradient(135deg, #D4AF37 0%, #C49C2E 100%);
+    border-radius: 16px;
+    padding: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+.safety-banner-simple svg {
+    flex-shrink: 0;
+}
+
+.safety-banner-simple h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 0.5rem 0;
+}
+
+.safety-banner-simple p {
+    font-size: 1rem;
+    color: white;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .safety-section-simple {
+        padding: 5rem 0 3rem;
+    }
+    
+    .safety-hero-simple h1 {
+        font-size: 2.2rem;
+    }
+    
+    .safety-hero-simple p {
+        font-size: 1rem;
+    }
+    
+    .safety-section-card {
+        padding: 1.8rem;
+    }
+    
+    .section-header-simple h2 {
+        font-size: 1.5rem;
+    }
+    
+    .safety-grid-simple {
+        grid-template-columns: 1fr;
+    }
+    
+    .safety-banner-simple {
+        flex-direction: column;
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .safety-banner-simple h3 {
+        font-size: 1.3rem;
+    }
+}

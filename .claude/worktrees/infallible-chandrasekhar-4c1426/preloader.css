@@ -1,0 +1,147 @@
+/* ============================================
+   SIMPLE PRELOADER - PERFECTLY CENTERED
+   ============================================ */
+
+/* Preloader Container */
+.preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    z-index: 99999;
+    transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+}
+
+/* Hide preloader */
+.preloader.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Content Container - Absolute Center */
+.preloader-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Logo */
+.preloader-logo {
+    margin-bottom: 1.5rem;
+    animation: logoFade 1.5s ease-in-out infinite;
+    text-align: center;
+    width: 180px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.preloader-logo img {
+    width: 180px;
+    height: auto;
+    display: block;
+}
+
+@keyframes logoFade {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Loading Animation - Box traveling from plane to X */
+.loading-track {
+    position: relative;
+    width: 180px;
+    height: 30px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.loading-box {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    background: linear-gradient(135deg, #D4AF37 0%, #F4C542 100%);
+    border-radius: 3px;
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+    animation: boxTravel 1.5s ease-in-out infinite;
+}
+
+/* Box travels from left (plane) to right (X) */
+@keyframes boxTravel {
+    0% {
+        left: 0;
+        transform: translateY(-50%) scale(1);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    50% {
+        transform: translateY(-50%) scale(1.2);
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        left: calc(100% - 14px);
+        transform: translateY(-50%) scale(1);
+        opacity: 0;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .preloader-logo {
+        width: 140px;
+    }
+    
+    .preloader-logo img {
+        width: 140px;
+    }
+    
+    .loading-track {
+        width: 140px;
+        height: 25px;
+    }
+    
+    .loading-box {
+        width: 12px;
+        height: 12px;
+    }
+    
+    @keyframes boxTravel {
+        0% {
+            left: 0;
+            transform: translateY(-50%) scale(1);
+            opacity: 0;
+        }
+        10% {
+            opacity: 1;
+        }
+        50% {
+            transform: translateY(-50%) scale(1.2);
+        }
+        90% {
+            opacity: 1;
+        }
+        100% {
+            left: calc(100% - 12px);
+            transform: translateY(-50%) scale(1);
+            opacity: 0;
+        }
+    }
+    
+    .preloader-logo {
+        margin-bottom: 1.2rem;
+    }
+}

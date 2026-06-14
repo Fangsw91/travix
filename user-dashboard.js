@@ -1,0 +1,554 @@
+// ─── Travix User Dashboard — Live Updates ────────────────────────────────────
+
+const REFRESH_INTERVAL = 15000; // 15 seconds
+let refreshTimer = null;
+let currentRole  = 'sender'; // 'sender' | 'traveler'
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', initDashboard);
+
+async function initDashboard() {
+    const token = localStorage.getItem('auth_token');
+    if (!token) { window.location.href = 'signin.html'; return; }
+
+    // Role already applied by CSS — just sync JS state
+    detectRole();
+    setupTabs();
+    setupLogout();
+
+    // Render profile from cache instantly (zero flicker)
+    renderProfile();
+    loadVerificationStatus(); // load verification status silently
+
+    // Fetch fresh data from API silently in background
+    await syncUser();
+    await refreshAll();
+
+    showLiveIndicator();
+
+    // Live refresh every 15s — silent (no opacity changes)
+    refreshTimer = setInterval(refreshAll, REFRESH_INTERVAL);
+}
+
+// ─── Sync user from API ───────────────────────────────────────────────────────
+async function syncUser() {
+    try {
+        const data = await apiCall('/auth/user');
+        if (data.success && data.user) {
+            // Merge with existing (keep local fields not returned by API)
+            const existing = getUser() || {};
+            const updated  = { ...existing, ...data.user };
+            localStorage.setItem('user', JSON.stringify(updated));
+            renderProfile(); // Re-render with fresh data
+        }
+    } catch (e) {
+        // Token expired?
+        if (e.status === 401) {
+            localStorage.clear();
+            window.location.href = 'signin.html';
+        }
+    }
+}
+
+// ─── Detect role — CSS already shows correct view, just sync state ───────────
+function detectRole() {
+    const user = getUser();
+    currentRole = user?.role === 'traveler' ? 'traveler' : 'sender';
+
+    // Keep data-role in sync (CSS uses this to show/hide views)
+    document.documentElement.setAttribute('data-role', currentRole);
+
+    // Hide tabs bar — single-role users don't need to switch
+    const tabsWrapper = document.getElementById('dashboardTabs');
+    if (tabsWrapper) tabsWrapper.style.display = 'none';
+
+    // Update page title
+    const titleEl = document.getElementById('pageTitle');
+    if (titleEl) {
+        titleEl.textContent = currentRole === 'traveler'
+            ? 'Traveler Dashboard - Travix'
+            : 'Sender Dashboard - Travix';
+    }
+}
+
+// ─── Refresh stats + shipments ────────────────────────────────────────────────
+async function refreshAll() {
+    await Promise.all([
+        loadProfile(),
+        loadStats(),
+        loadShipments('sender'),
+        loadShipments('traveler'),
+    ]);
+}
+
+// ─── Stats ────────────────────────────────────────────────────────────────────
+async function loadStats() {
+    try {
+        const data = await apiCall('/dashboard/stats');
+        if (!data.success) return;
+        const s = data.stats;
+
+        // Update each stat card by label
+        document.querySelectorAll('.stat-card-small').forEach(card => {
+            const label = card.querySelector('.stat-label-small')?.textContent.trim();
+            const valEl = card.querySelector('.stat-value-small');
+            if (!valEl) return;
+
+            const map = {
+                'Active Requests':  s.active_requests,
+                'Pending':          s.pending,
+                'Completed':        s.completed,
+                'Total Spent':      s.total_spent != null ? '$' + s.total_spent.toFixed(2) : null,
+                'Accepted Trips':   s.accepted_trips,
+                'Pending Requests': s.pending_requests,
+                'Active Deliveries':s.active_deliveries,
+                'Total Earnings':   s.total_earnings != null ? '$' + s.total_earnings.toFixed(2) : null,
+                'This Month':       s.this_month != null ? '$' + s.this_month.toFixed(2) : null,
+            };
+
+            const val = map[label];
+            if (val != null) animateValue(valEl, val);
+        });
+
+        // Profile stats row
+        const pStats = document.querySelectorAll('.user-stat strong');
+        if (pStats[0]) animateValue(pStats[0], s.completed || 0);
+        if (pStats[1]) animateValue(pStats[1], s.active_requests || s.accepted_trips || 0);
+        if (pStats[2]) animateValue(pStats[2], '$' + (s.total_spent || s.total_earnings || 0).toFixed(2));
+
+    } catch (e) { console.warn('Stats error:', e.message); }
+}
+
+// ─── Shipments list ───────────────────────────────────────────────────────────
+async function loadShipments(role) {
+    const listId = role === 'sender' ? 'sender-deliveries-list' : 'traveler-deliveries-list';
+    const listEl = document.getElementById(listId);
+    if (!listEl) return;
+
+    // Show skeleton on first load only
+    if (!listEl.querySelector('.delivery-item')) {
+        listEl.innerHTML = skeletonCards(3);
+    }
+
+    try {
+        const data = await apiCall(`/dashboard/shipments?role=${role}`);
+        if (!data.success) return;
+
+        if (!data.shipments.length) {
+            listEl.innerHTML = emptyState(role);
+            return;
+        }
+
+        // Update silently — no flash
+        listEl.innerHTML = data.shipments.map(s => shipmentCard(s, role)).join('');
+
+    } catch (e) {
+        console.warn('Shipments error:', e.message);
+        if (!listEl.querySelector('.delivery-item')) {
+            listEl.innerHTML = emptyState(role);
+        }
+        listEl.style.opacity = '1';
+    }
+}
+
+// ─── Skeleton loading cards ───────────────────────────────────────────────────
+function skeletonCards(n) {
+    return Array(n).fill(0).map(() => `
+        <div style="
+            display:flex;align-items:center;gap:1rem;
+            padding:1rem;border-radius:10px;border:1px solid #F3F4F6;
+            margin-bottom:0.75rem;background:#fff;
+        ">
+            <div style="flex:1;">
+                <div style="height:14px;background:#F3F4F6;border-radius:4px;width:60%;margin-bottom:0.5rem;
+                    animation:shimmer 1.5s ease-in-out infinite;"></div>
+                <div style="height:12px;background:#F3F4F6;border-radius:4px;width:40%;
+                    animation:shimmer 1.5s ease-in-out infinite 0.2s;"></div>
+            </div>
+            <div style="width:60px;height:20px;background:#F3F4F6;border-radius:4px;
+                animation:shimmer 1.5s ease-in-out infinite 0.4s;"></div>
+        </div>
+    `).join('') + `<style>
+        @keyframes shimmer {
+            0%,100%{opacity:1} 50%{opacity:0.4}
+        }
+    </style>`;
+}
+
+// ─── Shipment card HTML ───────────────────────────────────────────────────────
+function shipmentCard(s, role) {
+    const isActive = !['delivered','cancelled'].includes(s.status);
+
+    return `
+    <div class="delivery-item" style="
+        display:flex;align-items:center;justify-content:space-between;
+        padding:1rem;border-radius:10px;border:1px solid #F3F4F6;
+        margin-bottom:0.75rem;background:#fff;
+        transition:box-shadow 0.2s;
+        cursor:pointer;
+    " onclick="window.location.href='track-delivery.html?id=${s.order_id}'"
+       onmouseenter="this.style.boxShadow='0 2px 12px rgba(0,0,0,0.08)'"
+       onmouseleave="this.style.boxShadow='none'">
+        <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+                <span style="font-weight:700;color:#111;font-size:0.95rem;
+                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    ${s.item_name}
+                </span>
+                <span style="
+                    font-size:0.72rem;font-weight:600;padding:2px 8px;border-radius:999px;
+                    background:${s.status_color}22;color:${s.status_color};
+                    white-space:nowrap;
+                ">${s.status_label}</span>
+            </div>
+            <div style="font-size:0.82rem;color:#6B7280;">${s.route}</div>
+            <div style="font-size:0.78rem;color:#9CA3AF;margin-top:0.15rem;">${s.created_at}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:1rem;display:flex;flex-direction:column;align-items:flex-end;gap:0.3rem;">
+            <div style="font-weight:700;color:#D4AF37;font-size:0.95rem;">${s.total_amount}</div>
+            ${isActive ? `
+            <div style="display:flex;gap:0.4rem;flex-wrap:wrap;justify-content:flex-end;">
+                <a href="track-delivery.html?id=${s.order_id}"
+                   style="font-size:0.75rem;color:#3B82F6;text-decoration:none;padding:2px 8px;border:1px solid #3B82F6;border-radius:6px;"
+                   onclick="event.stopPropagation()">Track</a>
+                ${s.id && s.status !== 'requested' ? `
+                <a href="chat.html?shipment=${s.id}&order=${s.order_id}"
+                   style="font-size:0.75rem;color:#fff;background:#0A1A2F;text-decoration:none;padding:2px 8px;border-radius:6px;"
+                   onclick="event.stopPropagation()">💬 Chat</a>` : ''}
+                ${role === 'traveler' && s.status === 'accepted' ? `
+                <a href="pickup-confirm.html?order=${s.order_id}"
+                   style="font-size:0.75rem;color:#fff;background:#10B981;text-decoration:none;padding:2px 8px;border-radius:6px;"
+                   onclick="event.stopPropagation()">📸 Pickup</a>` : ''}
+            </div>` : ''}
+        </div>
+    </div>`;
+}
+
+// ─── Empty state ──────────────────────────────────────────────────────────────
+function emptyState(role) {
+    const isSender = role === 'sender';
+    return `
+    <div style="text-align:center;padding:2.5rem 1rem;color:#6B7280;">
+        <div style="font-size:2.5rem;margin-bottom:0.75rem;">${isSender ? '📦' : '✈️'}</div>
+        <p style="font-weight:600;color:#374151;margin-bottom:0.5rem;">
+            ${isSender ? 'No shipments yet' : 'No deliveries yet'}
+        </p>
+        <p style="font-size:0.875rem;margin-bottom:1rem;">
+            ${isSender ? 'Send your first item to get started' : 'Accept a delivery request to get started'}
+        </p>
+        <a href="${isSender ? 'send-item.html' : 'delivery-requests.html'}"
+           style="display:inline-block;padding:0.6rem 1.5rem;background:#D4AF37;color:#fff;
+           border-radius:8px;font-weight:600;text-decoration:none;font-size:0.875rem;">
+            ${isSender ? '+ Send Item' : 'Browse Requests'}
+        </a>
+    </div>`;
+}
+
+// ─── Load profile (render from cache, then refresh from API) ─────────────────
+async function loadProfile() {
+    // Render immediately from localStorage so there's no flicker
+    renderProfile();
+
+    // Fetch fresh profile + stats from API
+    try {
+        const data = await apiCall('/dashboard/profile');
+        if (data.success) {
+            const existing = getUser() || {};
+            const updated  = { ...existing, ...data.user };
+            localStorage.setItem('user', JSON.stringify(updated));
+            renderProfile(); // Re-render with fresh data
+        }
+    } catch (_) {
+        // Silently fall back to cached data already rendered above
+    }
+}
+
+// ─── Profile render ───────────────────────────────────────────────────────────
+function renderProfile() {
+    const user = getUser();
+    if (!user) return;
+
+    // Name — try all possible IDs
+    ['userName', 'user-name', 'profileName'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = user.name;
+    });
+    // Also by selector
+    document.querySelectorAll('.profile-name, [data-profile="name"]').forEach(el => {
+        el.textContent = user.name;
+    });
+
+    // Handle / username
+    document.querySelectorAll('.user-handle, [data-profile="handle"]').forEach(el => {
+        el.textContent = '@' + (user.email || '').split('@')[0];
+    });
+
+    // Avatar initials
+    document.querySelectorAll('.user-avatar, .avatar-initials').forEach(el => {
+        if (!el.querySelector('img')) {
+            const initials = (user.name || 'U')
+                .split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            el.textContent = initials;
+            // Color by role
+            el.style.background = user.role === 'traveler'
+                ? 'linear-gradient(135deg, #3B82F6, #2563EB)'
+                : 'linear-gradient(135deg, #D4AF37, #F4C542)';
+            el.style.color = '#fff';
+        }
+    });
+
+    // Location
+    document.querySelectorAll('.user-location, [data-profile="location"]').forEach(el => {
+        el.textContent = user.phone
+            ? `📍 ${user.country || 'Jordan'} · ${user.phone}`
+            : `📍 ${user.country || 'Jordan'}`;
+    });
+
+    // Role badge — update if exists, otherwise inject
+    let roleEl = document.querySelector('.user-role, .role-badge, [data-profile="role"]');
+    if (!roleEl) {
+        // Inject next to name
+        const nameRow = document.querySelector('.user-name-row');
+        if (nameRow) {
+            roleEl = document.createElement('span');
+            roleEl.className = 'role-badge';
+            roleEl.style.cssText = `
+                font-size:0.75rem;font-weight:600;padding:3px 10px;border-radius:999px;
+                background:${user.role === 'traveler' ? '#DBEAFE' : '#FEF3C7'};
+                color:${user.role === 'traveler' ? '#1D4ED8' : '#92400E'};
+                margin-left:0.5rem;
+            `;
+            nameRow.appendChild(roleEl);
+        }
+    }
+    if (roleEl) roleEl.textContent = user.role === 'traveler' ? '✈️ Traveler' : '📦 Sender';
+
+    // Email if element exists
+    document.querySelectorAll('[data-profile="email"], .user-email').forEach(el => {
+        el.textContent = user.email;
+    });
+
+    // Keep data-role attribute in sync with user role
+    currentRole = user.role === 'traveler' ? 'traveler' : 'sender';
+    document.documentElement.setAttribute('data-role', currentRole);
+}
+
+// ─── Tab switching ────────────────────────────────────────────────────────────
+function setupTabs() {
+    const tabs  = document.querySelectorAll('.dashboard-tab');
+    const views = document.querySelectorAll('.dashboard-view');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            currentRole = this.dataset.view;
+
+            views.forEach(v => {
+                v.classList.remove('active');
+                if (v.id === `${currentRole}-view`) v.classList.add('active');
+            });
+        });
+    });
+}
+
+// ─── Logout ───────────────────────────────────────────────────────────────────
+function setupLogout() {
+    document.querySelectorAll('#logoutBtn, .btn-logout, .btn-logout-nav, [data-logout]').forEach(btn => {
+        btn.addEventListener('click', async e => {
+            e.preventDefault();
+            clearInterval(refreshTimer);
+            try { await AuthAPI.logout(); } catch (_) {}
+            localStorage.clear();
+            window.location.href = 'travix-landing.html';
+        });
+    });
+}
+
+// ─── Live indicator ───────────────────────────────────────────────────────────
+function showLiveIndicator() {
+    const header = document.querySelector('.dashboard-header, .profile-section, h1');
+    if (!header || document.getElementById('dashLive')) return;
+
+    const ind = document.createElement('div');
+    ind.id = 'dashLive';
+    ind.style.cssText = 'display:inline-flex;align-items:center;gap:0.35rem;font-size:0.78rem;color:#10B981;font-weight:600;margin-left:0.75rem;vertical-align:middle;';
+    ind.innerHTML = `
+        <span style="width:7px;height:7px;border-radius:50%;background:#10B981;display:inline-block;
+            animation:livePulse 1.5s ease-in-out infinite;"></span>Live
+    `;
+    header.appendChild(ind);
+
+    if (!document.getElementById('dashLiveStyle')) {
+        const s = document.createElement('style');
+        s.id = 'dashLiveStyle';
+        s.textContent = `
+            @keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+            .list-loading{text-align:center;padding:2rem;color:#9CA3AF;font-size:.875rem;}
+        `;
+        document.head.appendChild(s);
+    }
+}
+
+// ─── Animate stat number change ───────────────────────────────────────────────
+function animateValue(el, newVal) {
+    const current = el.textContent;
+    if (current === String(newVal)) return; // no change
+
+    el.style.transition = 'opacity 0.3s, transform 0.3s';
+    el.style.opacity    = '0';
+    el.style.transform  = 'translateY(-6px)';
+
+    setTimeout(() => {
+        el.textContent  = newVal;
+        el.style.opacity   = '1';
+        el.style.transform = 'translateY(0)';
+    }, 300);
+}
+
+// ─── Helper ───────────────────────────────────────────────────────────────────
+function getUser() {
+    try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
+}
+
+// Global
+window.refreshDashboard = refreshAll;
+window.updateProfile    = renderProfile;
+window.updateStats      = loadStats;
+
+// Stop polling on leave
+window.addEventListener('beforeunload', () => clearInterval(refreshTimer));
+// Pause when hidden, resume when visible
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        clearInterval(refreshTimer);
+    } else {
+        refreshAll();
+        refreshTimer = setInterval(refreshAll, REFRESH_INTERVAL);
+    }
+});
+
+console.log('✅ Dashboard live — refreshing every 15s');
+
+// ── ID Verification ───────────────────────────────────────────────────────────
+const verifUploaded = { id_front: false, id_back: false, selfie: false, passport: false };
+
+async function loadVerificationStatus() {
+    try {
+        const data = await apiCall('/verification/status');
+        if (!data.success) return;
+        applyVerifStatus(data);
+    } catch(e) {}
+}
+
+function applyVerifStatus(data) {
+    const status = data.verification_status || 'unverified';
+    const badge  = document.getElementById('verifBadge');
+    const upload = document.getElementById('verifUploadArea');
+    const pending  = document.getElementById('verifPendingArea');
+    const approved = document.getElementById('verifApprovedArea');
+
+    // Badge
+    if (badge) {
+        const labels = { unverified:'Unverified', pending:'Under Review', approved:'Verified ✓', rejected:'Rejected' };
+        badge.textContent = labels[status] || status;
+        badge.className   = 'verif-badge ' + status;
+    }
+
+    // Show correct area
+    if (status === 'approved') {
+        upload?.style.setProperty('display','none');
+        pending?.style.setProperty('display','none');
+        approved?.style.setProperty('display','block');
+        // Update profile badge
+        const profBadge = document.querySelector('.verified-badge');
+        if (profBadge) profBadge.style.display = '';
+    } else if (status === 'pending') {
+        upload?.style.setProperty('display','none');
+        pending?.style.setProperty('display','block');
+        approved?.style.setProperty('display','none');
+    } else {
+        upload?.style.setProperty('display','block');
+        pending?.style.setProperty('display','none');
+        approved?.style.setProperty('display','none');
+        // Mark already-uploaded photos
+        if (data.has_id_front) markDone('id_front');
+        if (data.has_id_back)  markDone('id_back');
+        if (data.has_selfie)   markDone('selfie');
+        if (data.has_passport) markDone('passport');
+    }
+}
+
+function triggerUpload(type) {
+    const inputMap = { id_front:'inputIdFront', id_back:'inputIdBack', selfie:'inputSelfie', passport:'inputPassport' };
+    document.getElementById(inputMap[type])?.click();
+}
+
+async function handleUpload(type, input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+
+    // Show preview
+    const previewMap = { id_front:'previewIdFront', id_back:'previewIdBack', selfie:'previewSelfie', passport:'previewPassport' };
+    const previewEl  = document.getElementById(previewMap[type]);
+    if (previewEl) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            previewEl.innerHTML = `<img src="${e.target.result}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;">`;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Upload to API
+    try {
+        const token    = localStorage.getItem('auth_token');
+        const formData = new FormData();
+        formData.append('type',  type);
+        formData.append('photo', file);
+
+        const res = await fetch(window.API_BASE_URL + '/verification/upload', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+            body: formData,
+        });
+        const data = await res.json();
+        if (data.success) {
+            markDone(type);
+        }
+    } catch(e) {
+        console.error('Upload error:', e);
+    }
+}
+
+function markDone(type) {
+    verifUploaded[type] = true;
+    const boxMap = { id_front:'boxIdFront', id_back:'boxIdBack', selfie:'boxSelfie', passport:'boxPassport' };
+    document.getElementById(boxMap[type])?.classList.add('done');
+
+    // Enable submit if front + back uploaded (min required)
+    const btn = document.getElementById('verifSubmitBtn');
+    if (btn && verifUploaded.id_front && verifUploaded.id_back) {
+        btn.disabled = false;
+    }
+}
+
+async function submitVerification() {
+    const btn = document.getElementById('verifSubmitBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
+
+    try {
+        const data = await apiCall('/verification/submit', { method: 'POST' });
+        if (data.success) {
+            document.getElementById('verifUploadArea').style.display  = 'none';
+            document.getElementById('verifPendingArea').style.display = 'block';
+            const badge = document.getElementById('verifBadge');
+            if (badge) { badge.textContent = 'Under Review'; badge.className = 'verif-badge pending'; }
+        } else {
+            alert(data.message || 'Submission failed.');
+            if (btn) { btn.disabled = false; btn.textContent = 'Submit for Verification'; }
+        }
+    } catch(e) {
+        alert('Network error. Please try again.');
+        if (btn) { btn.disabled = false; btn.textContent = 'Submit for Verification'; }
+    }
+}

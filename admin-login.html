@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Travix</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="modal.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="js/api-config.js"></script>
+    
+    <style>
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .admin-icon {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <div class="logo" onclick="window.location.href='travix-landing.html'" style="cursor: pointer;">
+                    <img src="travix-logo.png" alt="Travix Logo">
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="travix-landing.html">Home</a></li>
+                    <li><a href="calculator.html">Calculator</a></li>
+                    <li><a href="travix-landing.html#how-it-works">How it Works</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="travix-landing.html#help">Help</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <a href="signin.html" class="btn-link">User Login</a>
+                    <a href="signup.html" class="btn-primary" style="text-decoration: none;">Sign up</a>
+                </div>
+                <button class="mobile-menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Admin Login Section -->
+    <section class="signin-section">
+        <div class="signin-container">
+            <div class="signin-card">
+                <!-- Admin Badge -->
+                <div class="admin-badge">
+                    <svg class="admin-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-.464 5.535a1 1 0 10-1.415-1.414 3 3 0 01-4.242 0 1 1 0 00-1.415 1.414 5 5 0 007.072 0z" clip-rule="evenodd"/>
+                    </svg>
+                    Administrator Access
+                </div>
+
+                <!-- Lock Icon -->
+                <div class="signin-icon">
+                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="60" height="60" rx="12" fill="#667eea"/>
+                        <path d="M30 15C26.134 15 23 18.134 23 22V26H20V40H40V26H37V22C37 18.134 33.866 15 30 15ZM30 18C32.206 18 34 19.794 34 22V26H26V22C26 19.794 27.794 18 30 18Z" fill="white"/>
+                        <circle cx="30" cy="33" r="3" fill="#667eea"/>
+                    </svg>
+                </div>
+
+                <!-- Welcome Text -->
+                <h1 class="signin-title">Admin Portal</h1>
+                <p class="signin-subtitle">Access the Travix administration dashboard</p>
+
+                <!-- Admin Login Form -->
+                <form class="signin-form" id="adminLoginForm">
+                    <div class="form-group">
+                        <label for="email">Admin Email</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            placeholder="admin@travix.com"
+                            required
+                            autocomplete="email"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="Enter admin password"
+                            required
+                            autocomplete="current-password"
+                        >
+                    </div>
+
+                    <button type="submit" class="btn-signin">Sign In as Admin</button>
+
+                    <p class="signup-link" style="margin-top: 1.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" style="vertical-align: middle; margin-right: 0.5rem;">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        Regular user? <a href="signin.html">Sign in here</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <script src="modal.js"></script>
+    <script src="admin-login.js"></script>
+</body>
+</html>

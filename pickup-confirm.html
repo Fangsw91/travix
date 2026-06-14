@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Pickup - Travix</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #F9FAFB; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; }
+
+        .pickup-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.08);
+            max-width: 480px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .pickup-header {
+            background: #0A1A2F;
+            padding: 1.5rem;
+            text-align: center;
+            color: #fff;
+        }
+        .pickup-header h2 { font-size: 1.2rem; margin: 0.5rem 0 0.25rem; }
+        .pickup-header p  { font-size: 0.85rem; color: rgba(255,255,255,0.6); margin: 0; }
+
+        .pickup-body { padding: 1.5rem; }
+
+        .order-badge {
+            background: #FFFBEB;
+            border: 1px solid #FDE68A;
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+            color: #92400E;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .order-badge strong { color: #0A1A2F; }
+
+        /* Camera area */
+        .camera-area {
+            border: 2px dashed #E5E7EB;
+            border-radius: 14px;
+            background: #F9FAFB;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        .camera-area:hover { border-color: #D4AF37; background: #FFFBEB; }
+        .camera-area.has-photo { border-style: solid; border-color: #10B981; }
+
+        .camera-area svg { opacity: 0.4; }
+        .camera-area p { font-size: 0.85rem; color: #9CA3AF; text-align: center; margin: 0; }
+
+        #photoPreview {
+            display: none;
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        #photoInput { display: none; }
+
+        .photo-actions {
+            display: none;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .photo-actions.visible { display: flex; }
+        .btn-retake {
+            flex: 1;
+            padding: 0.6rem;
+            border: 1.5px solid #E5E7EB;
+            background: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #374151;
+            transition: border-color 0.2s;
+        }
+        .btn-retake:hover { border-color: #9CA3AF; }
+
+        .btn-confirm {
+            width: 100%;
+            padding: 0.9rem;
+            background: #10B981;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-confirm:hover    { background: #059669; }
+        .btn-confirm:disabled { background: #D1FAE5; cursor: not-allowed; color: #6EE7B7; }
+
+        .instructions {
+            background: #F0FDF4;
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.82rem;
+            color: #065F46;
+            line-height: 1.6;
+        }
+        .instructions strong { display: block; margin-bottom: 0.25rem; color: #047857; }
+
+        .success-overlay {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .success-overlay.visible { display: block; }
+        .success-icon {
+            width: 70px; height: 70px; border-radius: 50%;
+            background: #D1FAE5;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+        }
+        .progress-bar {
+            background: #E5E7EB;
+            border-radius: 4px;
+            height: 4px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #D4AF37;
+            border-radius: 4px;
+            animation: fillProgress 3s linear forwards;
+        }
+        @keyframes fillProgress { from { width: 0; } to { width: 100%; } }
+    </style>
+</head>
+<body>
+    <div class="pickup-card">
+        <div class="pickup-header">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+                <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#D4AF37" stroke-width="1.5"/>
+                <circle cx="12" cy="13" r="4" stroke="#D4AF37" stroke-width="1.5"/>
+            </svg>
+            <h2>Confirm Item Pickup</h2>
+            <p>Take a photo as proof of collection</p>
+        </div>
+
+        <div class="pickup-body">
+            <div class="order-badge">
+                <span>Order: <strong id="displayOrderId">—</strong></span>
+                <span id="displayItem">Loading...</span>
+            </div>
+
+            <!-- Main form -->
+            <div id="pickupForm">
+                <div class="instructions">
+                    <strong>📸 Photo Guidelines:</strong>
+                    Make sure the item is clearly visible · Include the packaging label if possible · Good lighting required
+                </div>
+
+                <div class="camera-area" id="cameraArea" onclick="triggerCamera()">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                        <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#9CA3AF" stroke-width="1.5"/>
+                        <circle cx="12" cy="13" r="4" stroke="#9CA3AF" stroke-width="1.5"/>
+                    </svg>
+                    <p>Tap to take photo or upload from gallery</p>
+                    <img id="photoPreview" src="" alt="Preview">
+                </div>
+
+                <input type="file" id="photoInput" accept="image/*" capture="environment" onchange="previewPhoto(this)">
+
+                <div class="photo-actions" id="photoActions">
+                    <button class="btn-retake" onclick="triggerCamera()">📷 Retake</button>
+                </div>
+
+                <button class="btn-confirm" id="confirmBtn" onclick="submitPickup()" disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Confirm Pickup
+                </button>
+            </div>
+
+            <!-- Success state -->
+            <div class="success-overlay" id="successOverlay">
+                <div class="success-icon">✅</div>
+                <h3 style="color:#065F46;margin:0 0 0.5rem;">Pickup Confirmed!</h3>
+                <p style="color:#6B7280;font-size:0.9rem;">The sender has been notified. Status updated to "Picked Up".</p>
+                <div class="progress-bar"><div class="progress-fill"></div></div>
+                <p style="font-size:0.8rem;color:#9CA3AF;">Redirecting to dashboard...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api-config.js"></script>
+    <script>
+    const params  = new URLSearchParams(location.search);
+    const orderId = params.get('order');
+    let selectedFile = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('auth_token');
+        if (!token || !orderId) { alert('Invalid link'); history.back(); return; }
+        document.getElementById('displayOrderId').textContent = orderId;
+        loadShipmentInfo();
+    });
+
+    async function loadShipmentInfo() {
+        try {
+            const token = localStorage.getItem('auth_token');
+            const res   = await fetch(`${window.API_BASE_URL}/shipments/${orderId}/status`, {
+                headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('displayItem').textContent = data.item_name || orderId;
+            }
+        } catch(e) {}
+    }
+
+    function triggerCamera() {
+        document.getElementById('photoInput').click();
+    }
+
+    function previewPhoto(input) {
+        if (!input.files || !input.files[0]) return;
+        selectedFile = input.files[0];
+
+        const reader = new FileReader();
+        reader.onload = e => {
+            const preview   = document.getElementById('photoPreview');
+            const cameraArea = document.getElementById('cameraArea');
+
+            preview.src   = e.target.result;
+            preview.style.display = 'block';
+            cameraArea.classList.add('has-photo');
+
+            // Hide placeholder content, show image
+            cameraArea.querySelectorAll('svg, p:not(#photoPreview)').forEach(el => el.style.display = 'none');
+
+            document.getElementById('photoActions').classList.add('visible');
+            document.getElementById('confirmBtn').disabled = false;
+        };
+        reader.readAsDataURL(selectedFile);
+    }
+
+    async function submitPickup() {
+        if (!selectedFile) return;
+
+        const btn = document.getElementById('confirmBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite;margin-right:8px;"></span>Uploading...';
+
+        const formData = new FormData();
+        formData.append('photo', selectedFile);
+
+        try {
+            const token = localStorage.getItem('auth_token');
+            const res   = await fetch(`${window.API_BASE_URL}/shipments/${orderId}/pickup`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                },
+                body: formData,
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                document.getElementById('pickupForm').style.display = 'none';
+                document.getElementById('successOverlay').classList.add('visible');
+                setTimeout(() => window.location.href = 'user-dashboard.html', 3500);
+            } else {
+                alert(data.message || 'Upload failed. Try again.');
+                btn.disabled = false;
+                btn.innerHTML = '✓ Confirm Pickup';
+            }
+        } catch(e) {
+            alert('Network error. Please try again.');
+            btn.disabled = false;
+            btn.innerHTML = '✓ Confirm Pickup';
+        }
+    }
+    </script>
+    <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</body>
+</html>

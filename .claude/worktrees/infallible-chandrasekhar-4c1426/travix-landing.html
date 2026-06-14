@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travix - Global Delivery Made Simple</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="preloader.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="modal.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Preloader / Splash Screen -->
+    <div id="preloader" class="preloader">
+        <div class="preloader-content">
+            <!-- Logo -->
+            <div class="preloader-logo">
+                <img src="travix-logo.png" alt="Travix">
+            </div>
+            
+            <!-- Loading Animation - Box traveling from plane to X -->
+            <div class="loading-track">
+                <div class="loading-box"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <div class="logo" onclick="window.location.href='travix-landing.html'" style="cursor: pointer;">
+                    <img src="travix-logo.png" alt="Travix Logo">
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="calculator.html">Calculator</a></li>
+                    <li><a href="#how-it-works">How it Works</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="help-center.html">Help</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <div id="navAuthButtons">
+                        <a href="signin.html" class="btn-link">Log in</a>
+                        <a href="signup.html" class="btn-primary" style="text-decoration: none; display: inline-block;">Sign up</a>
+                    </div>
+                    <div id="navUserButtons" style="display: none;">
+                        <button class="btn-profile" onclick="window.location.href='user-dashboard.html'">
+                            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="10" cy="7" r="3" fill="currentColor"/>
+                                <path d="M4 17C4 14 7 12 10 12C13 12 16 14 16 17" stroke="currentColor" stroke-width="2" fill="none"/>
+                            </svg>
+                            Profile
+                        </button>
+                        <button class="btn-logout-nav" id="navLogoutBtn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11 3L15 7L11 11M15 7H5M5 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+                <button class="mobile-menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-new animate-on-load" id="home">
+        <div class="hero-bg-pattern"></div>
+        
+        <!-- Particle Network Canvas -->
+        <canvas id="particleCanvas" class="particle-canvas"></canvas>
+        
+        <div class="container">
+            <div class="hero-content-new">
+                <div class="hero-text-new animate-fade-in-up">
+                    <div class="hero-badge">
+                        <svg width="24" height="16" viewBox="0 0 24 16" style="display: inline-block; margin-right: 0.5rem; vertical-align: middle;">
+                            <rect width="24" height="16" fill="#000000"/>
+                            <rect y="5.33" width="24" height="5.33" fill="#FFFFFF"/>
+                            <rect y="10.67" width="24" height="5.33" fill="#007A3D"/>
+                            <path d="M0 0L9 8L0 16V0Z" fill="#CE1126"/>
+                            <path d="M3 8L4.5 7.2L4.3 8.8L5.5 9.8L3.8 9.9L3 11.5L2.2 9.9L0.5 9.8L1.7 8.8L1.5 7.2L3 8Z" fill="#FFFFFF"/>
+                        </svg>
+                        The first platform of its kind in the Arab region
+                    </div>
+                    <h1 class="hero-title-new">Send Items <span class="gradient-text">Globally</span> with Travelers</h1>
+                    <p class="hero-description">Connect with verified travelers and send packages faster and cheaper than traditional shipping. Save up to 60% on international deliveries.</p>
+                    <div class="hero-buttons-new">
+                        <button class="btn-hero-primary" onclick="checkAuthAndRedirect('send-item.html')">
+                            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 8L10 4L16 8L10 12L4 8Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M4 12L10 16L16 12" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            Send an Item
+                        </button>
+                        <button class="btn-hero-outline" onclick="checkAuthAndRedirect('become-traveler.html')">
+                            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="2"/>
+                                <path d="M10 3V10L14 14" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            Become a Traveler
+                        </button>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <strong>2,847</strong>
+                            <span>Active Users</span>
+                        </div>
+                        <div class="stat-item">
+                            <strong>156</strong>
+                            <span>Countries</span>
+                        </div>
+                        <div class="stat-item">
+                            <strong>94.2%</strong>
+                            <span>Success Rate</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-visual-new animate-fade-in-right">
+                    <!-- Particle animation in background -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- What is Travix Section -->
+    <section class="what-is-travix-new scroll-animate">
+        <div class="container">
+            <div class="what-is-wrapper">
+                <div class="what-is-content-left">
+                    <span class="section-badge">About Travix</span>
+                    <h2>What is Travix?</h2>
+                    <p class="what-is-intro">Travix is a peer-to-peer delivery platform that connects people who need to send items with travelers who have extra luggage space.</p>
+                    
+                    <div class="what-is-benefits">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2L15 8L22 9L17 14L18 21L12 18L6 21L7 14L2 9L9 8L12 2Z" fill="#D4AF37"/>
+                                </svg>
+                            </div>
+                            <div class="benefit-text">
+                                <h4>For Senders</h4>
+                                <p>Save up to 60% on international shipping costs</p>
+                            </div>
+                        </div>
+                        
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" stroke="#D4AF37" stroke-width="2" fill="none"/>
+                                    <path d="M8 12L11 15L16 9" stroke="#D4AF37" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="benefit-text">
+                                <h4>For Travelers</h4>
+                                <p>Earn money during your trip by utilizing empty luggage space</p>
+                            </div>
+                        </div>
+                        
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2Z" stroke="#10B981" stroke-width="2" fill="none"/>
+                                    <path d="M12 8V12L15 15" stroke="#10B981" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="benefit-text">
+                                <h4>Win-Win Solution</h4>
+                                <p>Fast, affordable, and eco-friendly delivery for everyone</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="what-is-visual">
+                    <div class="animation-container">
+                        <!-- Sender Icon (Left) -->
+                        <div class="animated-icon sender-icon">
+                            <div class="icon-circle">
+                                <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="25" cy="20" r="7" fill="#D4AF37"/>
+                                    <path d="M14 38C14 32 19 27 25 27C31 27 36 32 36 38" stroke="#D4AF37" stroke-width="3" stroke-linecap="round" fill="none"/>
+                                </svg>
+                            </div>
+                            <div class="icon-label">SENDER</div>
+                        </div>
+                        
+                        <!-- Package Icon -->
+                        <div class="animated-icon package-icon">
+                            <div class="icon-circle">
+                                <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="15" y="17" width="20" height="20" rx="2" fill="#D4AF37"/>
+                                    <path d="M15 27H35M25 17V37" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                                    <circle cx="25" cy="22" r="3" fill="white"/>
+                                </svg>
+                            </div>
+                            <div class="icon-label">PACKAGE</div>
+                        </div>
+                        
+                        <!-- Traveler Icon -->
+                        <div class="animated-icon traveler-icon">
+                            <div class="icon-circle">
+                                <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="25" cy="20" r="7" fill="#D4AF37"/>
+                                    <path d="M14 38C14 32 19 27 25 27C31 27 36 32 36 38" stroke="#D4AF37" stroke-width="3" stroke-linecap="round" fill="none"/>
+                                    <path d="M34 16L38 14L40 18L36 20Z" fill="#D4AF37"/>
+                                </svg>
+                            </div>
+                            <div class="icon-label">TRAVELER</div>
+                        </div>
+                        
+                        <!-- Destination Icon (Right) -->
+                        <div class="animated-icon destination-icon">
+                            <div class="icon-circle">
+                                <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M25 15C20 15 16 19 16 24C16 26 17 28 18 29L25 40L32 29C33 28 34 26 34 24C34 19 30 15 25 15Z" fill="#D4AF37"/>
+                                    <circle cx="25" cy="24" r="4" fill="white"/>
+                                </svg>
+                            </div>
+                            <div class="icon-label">DESTINATION</div>
+                        </div>
+                        
+                        <!-- Connecting Lines -->
+                        <svg class="connection-lines" width="100%" height="4" viewBox="0 0 100 4" preserveAspectRatio="none">
+                            <line class="line-1" x1="2" y1="2" x2="29" y2="2" stroke="#D4AF37" stroke-width="3"/>
+                            <line class="line-2" x1="29" y1="2" x2="57" y2="2" stroke="#D4AF37" stroke-width="3"/>
+                            <line class="line-3" x1="57" y1="2" x2="85" y2="2" stroke="#D4AF37" stroke-width="3"/>
+                        </svg>
+                        
+                        <!-- Animated Pulse Dots -->
+                        <div class="pulse-dot pulse-1"></div>
+                        <div class="pulse-dot pulse-2"></div>
+                        <div class="pulse-dot pulse-3"></div>
+                        <div class="pulse-dot pulse-4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-new scroll-animate">
+        <div class="container">
+            <div class="section-header-new">
+                <span class="section-badge">Why Choose Travix</span>
+                <h2>Deliver & Earn with Confidence</h2>
+                <p>Join thousands who trust Travix for fast, secure, and affordable global deliveries</p>
+            </div>
+            <div class="features-grid-new">
+                <div class="feature-card-new animate-scale-in" style="animation-delay: 0.1s;">
+                    <div class="feature-icon-new">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="24" cy="24" r="24" fill="#EEF2FF"/>
+                            <path d="M24 14L28 18L24 22L20 18L24 14Z" fill="#4F46E5"/>
+                            <path d="M20 22L24 26L28 22" stroke="#4F46E5" stroke-width="2"/>
+                            <circle cx="32" cy="16" r="6" fill="#10B981"/>
+                            <path d="M30 16L31 17L34 14" stroke="white" stroke-width="2" fill="none"/>
+                        </svg>
+                    </div>
+                    <h3>Verified Travelers</h3>
+                    <p>All travelers are ID-verified with ratings and reviews for your peace of mind</p>
+                </div>
+                <div class="feature-card-new animate-scale-in" style="animation-delay: 0.2s;">
+                    <div class="feature-icon-new">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="24" cy="24" r="24" fill="#FEF3C7"/>
+                            <rect x="18" y="20" width="12" height="10" rx="1" fill="#F59E0B"/>
+                            <path d="M20 20V18C20 16 22 15 24 15C26 15 28 16 28 18V20" stroke="#F59E0B" stroke-width="2"/>
+                            <circle cx="24" cy="25" r="2" fill="#FEF3C7"/>
+                        </svg>
+                    </div>
+                    <h3>Secure Payments</h3>
+                    <p>Escrow system ensures payment only after successful delivery confirmation</p>
+                </div>
+                <div class="feature-card-new animate-scale-in" style="animation-delay: 0.3s;">
+                    <div class="feature-icon-new">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="24" cy="24" r="24" fill="#DCFCE7"/>
+                            <path d="M16 24L20 28L32 16" stroke="#10B981" stroke-width="3" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <h3>Real-Time Tracking</h3>
+                    <p>Track your package every step of the way with live GPS updates and notifications</p>
+                </div>
+                <div class="feature-card-new animate-scale-in" style="animation-delay: 0.4s;">
+                    <div class="feature-icon-new">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="24" cy="24" r="24" fill="#FEE2E2"/>
+                            <path d="M18 28L24 18L30 28" stroke="#EF4444" stroke-width="2.5" fill="none"/>
+                            <path d="M22 34L26 34" stroke="#EF4444" stroke-width="3" stroke-linecap="round"/>
+                            <circle cx="24" cy="31" r="1.5" fill="#EF4444"/>
+                        </svg>
+                    </div>
+                    <h3>Insurance Protected</h3>
+                    <p>Every shipment is covered up to $1000 with our comprehensive insurance</p>
+                </div>
+                <div class="feature-card-new animate-scale-in" style="animation-delay: 0.5s;">
+                    <div class="feature-icon-new">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="24" cy="24" r="24" fill="#E0E7FF"/>
+                            <text x="24" y="32" text-anchor="middle" fill="#4F46E5" font-size="24" font-weight="bold">$</text>
+                        </svg>
+                    </div>
+                    <h3>Save up to 60%</h3>
+                    <p>Significantly cheaper than traditional courier services with faster delivery times</p>
+                </div>
+                <div class="feature-card-new animate-scale-in" style="animation-delay: 0.6s;">
+                    <div class="feature-icon-new">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="24" cy="24" r="24" fill="#FCE7F3"/>
+                            <circle cx="24" cy="20" r="5" fill="#EC4899"/>
+                            <path d="M16 34C16 29 19 26 24 26C29 26 32 29 32 34" stroke="#EC4899" stroke-width="2.5"/>
+                            <circle cx="32" cy="18" r="2" fill="#10B981"/>
+                        </svg>
+                    </div>
+                    <h3>24/7 Support</h3>
+                    <p>Our dedicated team is always here to help with any questions or concerns</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works-new scroll-animate" id="how-it-works">
+        <div class="container">
+            <div class="section-header-new">
+                <span class="section-badge">Simple Process</span>
+                <h2>How Travix Works</h2>
+                <p>Get started in three simple steps</p>
+            </div>
+            <div class="steps-container">
+                <div class="step-card animate-slide-up" style="animation-delay: 0.1s;">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="30" cy="30" r="30" fill="#EEF2FF"/>
+                            <rect x="20" y="24" width="20" height="16" rx="2" fill="#4F46E5"/>
+                            <path d="M20 32L40 32M30 24L30 40" stroke="white" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>Post Your Request</h3>
+                    <p>Tell us what you need to send, where it's going, and when you need it delivered</p>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step-card animate-slide-up" style="animation-delay: 0.3s;">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="30" cy="30" r="30" fill="#FEF3C7"/>
+                            <circle cx="30" cy="26" r="6" fill="#F59E0B"/>
+                            <path d="M20 44C20 38 24 34 30 34C36 34 40 38 40 44" stroke="#F59E0B" stroke-width="3"/>
+                        </svg>
+                    </div>
+                    <h3>Match with Traveler</h3>
+                    <p>Get matched with verified travelers heading to your destination</p>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step-card animate-slide-up" style="animation-delay: 0.5s;">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="30" cy="30" r="30" fill="#DCFCE7"/>
+                            <path d="M22 30L28 36L42 22" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <h3>Track & Receive</h3>
+                    <p>Track your package in real-time and get it delivered safely to your door</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section scroll-animate">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Send or Earn?</h2>
+                <p>Join thousands of satisfied users who trust Travix for their global deliveries</p>
+                <div class="cta-buttons">
+                    <button class="btn-cta-primary" onclick="checkAuthAndRedirect('send-item.html')">Send an Item Now</button>
+                    <button class="btn-cta-secondary" onclick="checkAuthAndRedirect('become-traveler.html')">Become a Traveler</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <div class="footer-logo">
+                        <img src="travix-logo.png" alt="Travix Logo">
+                    </div>
+                    <p>Connecting senders with travelers for affordable, secure deliveries worldwide</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 0C4.477 0 0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.879V12.89h-2.54V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-.443 2.89h-2.33v6.989C16.343 19.128 20 14.991 20 10c0-5.523-4.477-10-10-10z"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="Twitter">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M6.29 18.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0020 3.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.073 4.073 0 01.8 7.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 010 16.407a11.616 11.616 0 006.29 1.84"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="Instagram">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 0C7.284 0 6.944.012 5.877.06 4.813.11 4.086.278 3.45.525a4.917 4.917 0 00-1.772 1.153A4.917 4.917 0 00.525 3.45C.278 4.086.11 4.813.06 5.877.012 6.944 0 7.284 0 10s.012 3.056.06 4.123c.05 1.064.218 1.791.465 2.427a4.917 4.917 0 001.153 1.772 4.917 4.917 0 001.772 1.153c.636.247 1.363.415 2.427.465C6.944 19.988 7.284 20 10 20s3.056-.012 4.123-.06c1.064-.05 1.791-.218 2.427-.465a4.917 4.917 0 001.772-1.153 4.917 4.917 0 001.153-1.772c.247-.636.415-1.363.465-2.427C19.988 13.056 20 12.716 20 10s-.012-3.056-.06-4.123c-.05-1.064-.218-1.791-.465-2.427a4.917 4.917 0 00-1.153-1.772A4.917 4.917 0 0016.55.525C15.914.278 15.187.11 14.123.06 13.056.012 12.716 0 10 0zm0 1.802c2.67 0 2.987.01 4.041.059.976.045 1.505.207 1.858.344.466.181.8.398 1.15.748.35.35.566.684.748 1.15.137.353.3.882.344 1.857.048 1.055.058 1.37.058 4.04 0 2.672-.01 2.987-.058 4.042-.045.975-.207 1.504-.344 1.857a3.097 3.097 0 01-.748 1.15c-.35.35-.684.566-1.15.748-.353.137-.882.3-1.857.344-1.054.048-1.37.058-4.041.058-2.67 0-2.987-.01-4.04-.058-.976-.045-1.505-.207-1.858-.344a3.097 3.097 0 01-1.15-.748 3.097 3.097 0 01-.748-1.15c-.137-.353-.3-.882-.344-1.857-.048-1.055-.058-1.37-.058-4.041 0-2.67.01-2.986.058-4.04.045-.976.207-1.505.344-1.858.181-.466.398-.8.748-1.15.35-.35.684-.566 1.15-.748.353-.137.882-.3 1.857-.344 1.055-.048 1.37-.058 4.041-.058zM10 4.865a5.135 5.135 0 100 10.27 5.135 5.135 0 000-10.27zm0 8.468a3.333 3.333 0 110-6.666 3.333 3.333 0 010 6.666zm5.338-8.67a1.2 1.2 0 100 2.4 1.2 1.2 0 000-2.4z"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="LinkedIn">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M0 1.667C0 .747.746 0 1.667 0h16.666C19.253 0 20 .746 20 1.667v16.666C20 19.253 19.254 20 18.333 20H1.667C.747 20 0 19.254 0 18.333V1.667zM6.261 16.667V7.917H3.225v8.75h3.036zM4.743 6.667c1.061 0 1.723-.703 1.723-1.582-.02-.898-.662-1.583-1.703-1.583-1.04 0-1.723.685-1.723 1.583 0 .879.662 1.582 1.683 1.582h.02zm3.506 10V11.39c0-.273.02-.547.1-.742.22-.547.72-1.113 1.56-1.113 1.1 0 1.54.84 1.54 2.07v4.062h3.036v-4.354c0-2.806-1.498-4.112-3.496-4.112-1.638 0-2.358.916-2.758 1.54h.02V7.918H5.215c.04.858 0 8.75 0 8.75h3.034z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#how-it-works">How it Works</a></li>
+                        <li><a href="send-item.html">Send Items</a></li>
+                        <li><a href="become-traveler.html">Become a Traveler</a></li>
+                        <li><a href="calculator.html">Price Calculator</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                        <li><a href="terms-of-service.html">Terms of Service</a></li>
+                        <li><a href="safety-guidelines.html">Safety Guidelines</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Contact Us</h4>
+                    <ul class="contact-info">
+                        <li>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M0 4a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H2a2 2 0 01-2-2V4zm2-1a1 1 0 00-1 1v.217l7 4.2 7-4.2V4a1 1 0 00-1-1H2zm13 2.383l-4.758 2.855L15 11.114v-5.73zm-.034 6.878L9.271 8.82 8 9.583 6.728 8.82l-5.694 3.44A1 1 0 002 13h12a1 1 0 00.966-.739zM1 11.114l4.758-2.876L1 5.383v5.73z"/>
+                            </svg>
+                            <span>support@travix.com</span>
+                        </li>
+                        <li>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M3.654 1.328a.678.678 0 00-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 004.168 6.608 17.569 17.569 0 006.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 00-.063-1.015l-2.307-1.794a.678.678 0 00-.58-.122l-2.19.547a1.745 1.745 0 01-1.657-.459L5.482 8.062a1.745 1.745 0 01-.46-1.657l.548-2.19a.678.678 0 00-.122-.58L3.654 1.328z"/>
+                            </svg>
+                            <span>+962 77 542 3322</span>
+                        </li>
+                        <li>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M8 16s6-5.686 6-10A6 6 0 002 6c0 4.314 6 10 6 10zm0-7a3 3 0 110-6 3 3 0 010 6z"/>
+                            </svg>
+                            <span>Amman, Jordan</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Travix. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Cookie Policy</a>
+                    <a href="#">Security</a>
+                    <a href="#">Sitemap</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <script src="preloader.js"></script>
+    <script src="modal.js"></script>
+    <script src="check-auth.js"></script>
+    <script src="script.js"></script>
+    <script src="navbar-auth.js"></script>
+    <script src="particle-animation.js"></script>
+</body>
+</html>

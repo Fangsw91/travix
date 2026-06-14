@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"C:/laragon/www/travix\" diff master..claude/infallible-chandrasekhar-4c1426 --stat)",
+      "Bash(git -C \"C:/laragon/www/travix\" log --oneline master..claude/infallible-chandrasekhar-4c1426)",
+      "Bash(git -C \"C:/laragon/www/travix\" diff master..claude/infallible-chandrasekhar-4c1426 --name-only)",
+      "Bash(git -C \"C:/laragon/www/travix\" log --oneline -5 master)",
+      "Bash(git -C \"C:/laragon/www/travix\" log --oneline -5 claude/infallible-chandrasekhar-4c1426)",
+      "Bash(git -C \"C:/laragon/www/travix/.claude/worktrees/infallible-chandrasekhar-4c1426\" status --short)",
+      "Bash(git -C \"C:/laragon/www/travix/.claude/worktrees/infallible-chandrasekhar-4c1426\" add admin.html admin.js available-travelers.html available-travelers.js become-traveler.html become-traveler.js calculator.js delivery-requests.html delivery-requests.js js/api-config.js navbar-auth.js payment.html payment.js send-item.html send-item.js signup.html signup.js travix-api/.env.example travix-api/composer.json travix-api/config/sanctum.php travix-api/config/services.php travix-api/routes/api.php user-dashboard.html user-dashboard.js travix-api/app/Http/Controllers/API/PaymentController.php)",
+      "Bash(git -C C:/laragon/www/travix/.claude/worktrees/infallible-chandrasekhar-4c1426 commit -m ' *)",
+      "Bash(git -C \"C:/laragon/www/travix\" diff master..claude/infallible-chandrasekhar-4c1426)",
+      "Bash(git -C \"C:/laragon/www/travix\" diff master..claude/infallible-chandrasekhar-4c1426 -- admin.html admin.js)",
+      "Bash(php artisan *)",
+      "PowerShell($env:PATH = \"C:\\\\laragon\\\\bin\\\\php\\\\php8.3.14;\" + $env:PATH; cd \"C:\\\\laragon\\\\www\\\\travix\\\\travix-api\"; php artisan route:list --path=api/auth 2>&1)",
+      "PowerShell(Get-Command php -ErrorAction SilentlyContinue; where.exe php 2>$null; \\(Get-ItemProperty \"HKLM:\\\\SOFTWARE\\\\PHP\" -ErrorAction SilentlyContinue\\).InstallDir)",
+      "PowerShell(Get-Command sqlite3 -ErrorAction SilentlyContinue)"
+    ]
+  }
+}
