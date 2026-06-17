@@ -189,24 +189,6 @@
                         </div>
                     </div>
 
-                    <div class="form-row three-col">
-                        <div class="form-group">
-                            <label for="weight">Weight (kg)</label>
-                            <input type="number" id="weight" placeholder="e.g., 2.5" min="0.5" max="50" step="0.5" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="value">Estimated Value ($)</label>
-                            <input type="number" id="value" placeholder="e.g., 150" min="1" step="1" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Estimated Cost</label>
-                            <div class="cost-estimator">
-                                <div class="cost-amount" id="estimatedCost">$0.00</div>
-                                <div class="cost-info">Based on average rate</div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="form-group">
                         <label for="description">Item Description</label>
                         <textarea id="description" rows="4" placeholder="Provide details about your item (size, color, special handling instructions...)" required></textarea>
@@ -264,6 +246,49 @@
                         <div class="form-group">
                             <label for="deliveryDate">Preferred Delivery Date</label>
                             <input type="date" id="deliveryDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row three-col">
+                        <div class="form-group">
+                            <label for="weight">Weight (kg)</label>
+                            <input type="number" id="weight" placeholder="e.g., 2.5" min="0.1" max="50" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="value">Estimated Value ($)</label>
+                            <input type="number" id="value" placeholder="e.g., 150" min="1" step="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Estimated Cost</label>
+                            <div class="cost-estimator" id="costEstimatorBox">
+                                <div class="cost-amount" id="estimatedCost">$0.00</div>
+                                <div class="cost-info" id="costInfo">Select destination first</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price Breakdown — same logic as Calculator page -->
+                    <div class="calc-breakdown" id="calcBreakdown" style="display:none;">
+                        <div class="cb-title">💡 Price Breakdown</div>
+                        <div class="cb-row">
+                            <span>Weight fee</span>
+                            <strong id="bdWeightFee">—</strong>
+                        </div>
+                        <div class="cb-row">
+                            <span>Value fee</span>
+                            <strong id="bdValueFee">—</strong>
+                        </div>
+                        <div class="cb-row cb-base">
+                            <span>Base total</span>
+                            <strong id="bdBase">—</strong>
+                        </div>
+                        <div class="cb-row">
+                            <span>Platform fee (15%)</span>
+                            <strong id="bdPlatform">—</strong>
+                        </div>
+                        <div class="cb-row cb-total">
+                            <span>You Pay</span>
+                            <strong id="bdTotal">—</strong>
                         </div>
                     </div>
 
@@ -433,6 +458,25 @@
         .cd-item.selected { background: #FEF3C7; }
         .cd-name  { flex: 1; font-size: 0.9rem; color: #111827; }
         .cd-empty { padding: 16px; text-align: center; color: #9CA3AF; font-size: 0.9rem; }
+
+        /* Price Breakdown — matches Calculator page */
+        .calc-breakdown {
+            background: #F9FAFB; border: 1.5px solid #E5E7EB; border-radius: 10px;
+            padding: 14px 16px; margin-bottom: 1.25rem;
+        }
+        .cb-title {
+            font-size: 0.82rem; font-weight: 700; color: #6B7280;
+            text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;
+        }
+        .cb-row {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.88rem; color: #374151; padding: 4px 0;
+        }
+        .cb-row strong { color: #111827; }
+        .cb-base { border-top: 1px dashed #E5E7EB; margin-top: 4px; padding-top: 8px; }
+        .cb-total { border-top: 2px solid #D4AF37; margin-top: 6px; padding-top: 8px; font-weight: 700; }
+        .cb-total span { color: #0A1A2F; font-weight: 700; }
+        .cb-total strong { color: #D4AF37; font-size: 1.05rem; }
     </style>
 
     <script>
@@ -495,7 +539,9 @@
             selected = COUNTRIES_LIST.find(c => c.code === code);
             document.getElementById(wrapperId + '_txt').innerHTML =
                 cdFlagImg(selected.code) + '<span style="color:#111">' + selected.name + '</span>';
-            document.getElementById(hiddenId).value = selected.name;
+            const hiddenEl = document.getElementById(hiddenId);
+            hiddenEl.value = selected.name;
+            hiddenEl.dispatchEvent(new Event('change', { bubbles: true }));
             open = false;
             document.getElementById(wrapperId + '_panel').classList.remove('open');
             document.getElementById(wrapperId + '_arrow').style.transform = '';

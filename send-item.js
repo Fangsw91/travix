@@ -14,26 +14,91 @@ if (mobileMenuToggle) {
 const photoUpload = document.getElementById('photoUpload');
 const itemPhoto = document.getElementById('itemPhoto');
 
-// Cost Calculator
+// ── Country rates — same data as Calculator page ───────────────────────────────
+const SEND_ITEM_COUNTRY_RATES = {
+    'Saudi Arabia': 8, 'UAE': 9, 'Egypt': 7, 'Kuwait': 9, 'Qatar': 10,
+    'Bahrain': 9, 'Oman': 9, 'Lebanon': 8, 'Iraq': 10, 'Syria': 11,
+    'Tunisia': 12, 'Morocco': 13, 'Algeria': 13, 'Libya': 14, 'Yemen': 15, 'Sudan': 14,
+    'Turkey': 11, 'Germany': 18, 'France': 18, 'United Kingdom': 20, 'Italy': 17,
+    'Spain': 17, 'Netherlands': 19, 'Poland': 16, 'Sweden': 20, 'Norway': 21,
+    'Switzerland': 22, 'Greece': 15,
+    'United States': 25, 'Canada': 24, 'Mexico': 22, 'Brazil': 26,
+};
+
+function getValueFeeRate(itemValue) {
+    if (itemValue <= 100)  return 0.030;
+    if (itemValue <= 500)  return 0.025;
+    if (itemValue <= 1000) return 0.020;
+    return 0.015;
+}
+
+// Cost Calculator — matches Calculator page formula exactly
 const weightInput = document.getElementById('weight');
+const valueInput   = document.getElementById('value');
 const estimatedCostEl = document.getElementById('estimatedCost');
+const costInfoEl      = document.getElementById('costInfo');
 
 function calculateEstimatedCost() {
-    const weight = parseFloat(weightInput.value) || 0;
-    // Average rate of $15 per kg
-    const avgRate = 15;
-    const estimatedCost = weight * avgRate;
-    
-    if (estimatedCostEl) {
-        estimatedCostEl.textContent = `$${estimatedCost.toFixed(2)}`;
+    const weight    = parseFloat(weightInput?.value) || 0;
+    const itemValue = parseFloat(valueInput?.value)   || 0;
+    const destEl    = document.getElementById('destination');
+    const destName  = destEl?.value || '';
+    const rate      = SEND_ITEM_COUNTRY_RATES[destName] || 0;
+
+    const hasData = weight > 0 && rate > 0;
+
+    if (!hasData) {
+        if (estimatedCostEl) estimatedCostEl.textContent = '$0.00';
+        if (costInfoEl) costInfoEl.textContent = destName ? 'Enter weight' : 'Select destination first';
+        document.getElementById('calcBreakdown')?.style.setProperty('display', 'none');
+        return;
     }
+
+    const weightFee    = weight * rate;
+    const valueFeeRate = getValueFeeRate(itemValue);
+    const valueFee      = itemValue * valueFeeRate;
+    const base          = Math.max(weightFee + valueFee, 5); // minimum $5
+    const platformFee   = base * 0.15;
+    const total          = base + platformFee;
+
+    if (estimatedCostEl) estimatedCostEl.textContent = `$${total.toFixed(2)}`;
+    if (costInfoEl) costInfoEl.textContent = `${weight}kg × $${rate}/kg to ${destName}`;
+
+    // Breakdown box
+    const breakdown = document.getElementById('calcBreakdown');
+    if (breakdown) {
+        breakdown.style.display = 'block';
+        setBdEl('bdWeightFee', `$${weightFee.toFixed(2)}`);
+        setBdEl('bdValueFee', itemValue > 0 ? `$${valueFee.toFixed(2)} (${(valueFeeRate*100)}% of $${itemValue})` : '$0.00');
+        setBdEl('bdBase', `$${base.toFixed(2)}`);
+        setBdEl('bdPlatform', `$${platformFee.toFixed(2)}`);
+        setBdEl('bdTotal', `$${total.toFixed(2)}`);
+    }
+}
+
+function setBdEl(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
 }
 
 if (weightInput) {
     weightInput.addEventListener('input', calculateEstimatedCost);
-    // Initial calculation
-    calculateEstimatedCost();
 }
+if (valueInput) {
+    valueInput.addEventListener('input', calculateEstimatedCost);
+}
+// Recalculate when destination country changes (custom dropdown sets hidden input)
+document.addEventListener('change', function(e) {
+    if (e.target && e.target.id === 'destination') calculateEstimatedCost();
+});
+// Also poll briefly after dropdown selections (custom dropdown doesn't always fire 'change')
+const destObserverInterval = setInterval(() => {
+    const destEl = document.getElementById('destination');
+    if (destEl && destEl.value) calculateEstimatedCost();
+}, 500);
+setTimeout(() => clearInterval(destObserverInterval), 10000);
+
+calculateEstimatedCost();
 
 function setupUploadArea(uploadArea, fileInput) {
     if (!uploadArea || !fileInput) return;
