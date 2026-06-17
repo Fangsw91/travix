@@ -210,45 +210,6 @@ if (sendItemForm) {
 // NOTE: Shipment is NOT created here — it's created in payment.js after successful payment.
 // This keeps DB clean (no orphan shipments from unpaid orders).
 
-// ── Verification guard ────────────────────────────────────────────────────────
-async function checkVerification() {
-    try {
-        const token = localStorage.getItem('auth_token');
-        if (!token) return false;
-        const res  = await fetch(window.API_BASE_URL + '/verification/status', {
-            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
-        });
-        const data = await res.json();
-        return data.verification_status === 'approved';
-    } catch(e) { return false; }
-}
-
-function showVerifRequired() {
-    const overlay = document.createElement('div');
-    overlay.innerHTML = `
-        <div style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;
-                    display:flex;align-items:center;justify-content:center;">
-            <div style="background:#fff;border-radius:18px;padding:2rem;max-width:400px;width:90%;text-align:center;">
-                <div style="font-size:3rem;margin-bottom:0.75rem;">🪪</div>
-                <h3 style="color:#0A1A2F;margin:0 0 0.5rem;">Verification Required</h3>
-                <p style="color:#6B7280;font-size:0.9rem;margin:0 0 1.5rem;">
-                    You need to verify your identity before placing or accepting orders.
-                </p>
-                <div style="display:flex;gap:0.75rem;">
-                    <button onclick="this.closest('[style*=fixed]').remove()"
-                        style="flex:1;padding:0.75rem;border:1.5px solid #E5E7EB;background:#fff;border-radius:10px;cursor:pointer;">
-                        Later
-                    </button>
-                    <button onclick="window.location.href='user-dashboard.html'"
-                        style="flex:1;padding:0.75rem;background:#D4AF37;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:700;">
-                        Verify Now →
-                    </button>
-                </div>
-            </div>
-        </div>`;
-    document.body.appendChild(overlay);
-}
-
 function submitForm(formData, submitBtn, originalText) {
     submitBtn.textContent = 'Submitting...';
     submitBtn.disabled = true;
