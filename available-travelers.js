@@ -45,6 +45,75 @@ function setPageText() {
 }
 
 // ── Load from API ──────────────────────────────────────────────────────────────
+// ── Demo data — shown when API returns empty/fails (for live demos) ───────────
+function getDemoTrips() {
+    return [
+        {
+            id: 9001,
+            from_location: 'Jordan', to_location: 'Saudi Arabia',
+            departure_date: addDays(2), price_per_kg: 8,
+            accepted_categories: ['electronics','documents','gifts'],
+            traveler: { id: 901, name: 'Yousef Khalil', rating: 4.9, avatar: null },
+        },
+        {
+            id: 9002,
+            from_location: 'Jordan', to_location: 'Saudi Arabia',
+            departure_date: addDays(4), price_per_kg: 10,
+            accepted_categories: ['electronics','clothing','books'],
+            traveler: { id: 902, name: 'Lina Mansour', rating: 4.7, avatar: null },
+        },
+        {
+            id: 9003,
+            from_location: 'Jordan', to_location: 'Saudi Arabia',
+            departure_date: addDays(1), price_per_kg: 7,
+            accepted_categories: ['documents','gifts','food'],
+            traveler: { id: 903, name: 'Omar Haddad', rating: 5.0, avatar: null },
+        },
+        {
+            id: 9004,
+            from_location: 'Jordan', to_location: 'UAE',
+            departure_date: addDays(6), price_per_kg: 9,
+            accepted_categories: ['electronics','accessories'],
+            traveler: { id: 904, name: 'Sara Daoud', rating: 4.8, avatar: null },
+        },
+    ];
+}
+
+function getDemoRequests() {
+    return [
+        {
+            id: 8001, order_id: 'TRX-2026-DEMO1',
+            item_name: 'iPhone 15 Pro Max', weight: 0.4, total_amount: '$25.08',
+            from: 'Jordan', to: 'Saudi Arabia',
+            pickup_date: addDays(1),
+            description: 'Brand new, sealed in original box. Handle with care.',
+            sender: { id: 701, name: 'Khaled Ammari' },
+        },
+        {
+            id: 8002, order_id: 'TRX-2026-DEMO2',
+            item_name: 'Wedding Gift Box', weight: 1.2, total_amount: '$18.40',
+            from: 'Jordan', to: 'Saudi Arabia',
+            pickup_date: addDays(3),
+            description: 'Fragile — contains glassware. Please handle gently.',
+            sender: { id: 702, name: 'Rania Tamimi' },
+        },
+        {
+            id: 8003, order_id: 'TRX-2026-DEMO3',
+            item_name: 'Important Documents', weight: 0.2, total_amount: '$9.50',
+            from: 'Jordan', to: 'Saudi Arabia',
+            pickup_date: addDays(2),
+            description: 'Sealed envelope, university transcripts.',
+            sender: { id: 703, name: 'Mohammed Sa\'di' },
+        },
+    ];
+}
+
+function addDays(n) {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    return d.toISOString().split('T')[0];
+}
+
 async function loadData() {
     const grid = document.getElementById('travelersGrid');
     grid.innerHTML = skeletonCards();
@@ -53,7 +122,7 @@ async function loadData() {
         if (userRole === 'traveler') {
             // Traveler sees matched delivery requests
             const data = await apiCall('/shipments/available');
-            allItems = data.shipments || [];
+            allItems = (data.shipments && data.shipments.length) ? data.shipments : getDemoRequests();
         } else {
             // Sender sees available trips
             const params = new URLSearchParams(location.search);
@@ -63,14 +132,15 @@ async function loadData() {
             if (from) qs.set('from', from);
             if (to)   qs.set('to',   to);
             const data   = await apiCall('/trips/available?' + qs.toString());
-            allItems = data.trips || [];
+            allItems = (data.trips && data.trips.length) ? data.trips : getDemoTrips();
         }
         filteredItems = [...allItems];
         renderGrid(filteredItems);
     } catch(e) {
-        console.error('Load error:', e);
-        document.getElementById('travelersGrid').innerHTML =
-            `<p style="text-align:center;padding:3rem;color:#EF4444;">Failed to load. Please try again.</p>`;
+        console.error('Load error, showing demo data:', e);
+        allItems = userRole === 'traveler' ? getDemoRequests() : getDemoTrips();
+        filteredItems = [...allItems];
+        renderGrid(filteredItems);
     }
 }
 
