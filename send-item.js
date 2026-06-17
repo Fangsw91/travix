@@ -13,12 +13,6 @@ if (mobileMenuToggle) {
 // File Upload Handlers
 const photoUpload = document.getElementById('photoUpload');
 const itemPhoto = document.getElementById('itemPhoto');
-const idFrontUpload = document.getElementById('idFrontUpload');
-const idFront = document.getElementById('idFront');
-const idBackUpload = document.getElementById('idBackUpload');
-const idBack = document.getElementById('idBack');
-const selfieUpload = document.getElementById('selfieUpload');
-const selfie = document.getElementById('selfie');
 
 // Cost Calculator
 const weightInput = document.getElementById('weight');
@@ -93,9 +87,6 @@ function handleFileSelect(input, uploadArea) {
         let removeButtonId = '';
         
         if (inputId === 'itemPhoto') removeButtonId = 'removePhoto';
-        else if (inputId === 'idFront') removeButtonId = 'removeIdFront';
-        else if (inputId === 'idBack') removeButtonId = 'removeIdBack';
-        else if (inputId === 'selfie') removeButtonId = 'removeSelfie';
         
         const removeBtn = document.getElementById(removeButtonId);
         if (removeBtn) {
@@ -120,12 +111,6 @@ function setupRemoveButton(buttonId, inputId, uploadAreaId) {
             if (p) {
                 if (uploadAreaId === 'photoUpload') {
                     p.textContent = 'Click to upload or drag and drop';
-                } else if (uploadAreaId === 'selfieUpload') {
-                    p.textContent = 'Upload a selfie holding your ID for enhanced verification';
-                } else if (uploadAreaId === 'idFrontUpload') {
-                    p.textContent = 'Upload front of ID';
-                } else if (uploadAreaId === 'idBackUpload') {
-                    p.textContent = 'Upload back of ID';
                 }
                 p.style.color = '';
             }
@@ -138,15 +123,9 @@ function setupRemoveButton(buttonId, inputId, uploadAreaId) {
 
 // Setup all remove buttons
 setupRemoveButton('removePhoto', 'itemPhoto', 'photoUpload');
-setupRemoveButton('removeIdFront', 'idFront', 'idFrontUpload');
-setupRemoveButton('removeIdBack', 'idBack', 'idBackUpload');
-setupRemoveButton('removeSelfie', 'selfie', 'selfieUpload');
 
 // Setup all upload areas
 setupUploadArea(photoUpload, itemPhoto);
-setupUploadArea(idFrontUpload, idFront);
-setupUploadArea(idBackUpload, idBack);
-setupUploadArea(selfieUpload, selfie);
 
 // Form Submission
 const sendItemForm = document.getElementById('sendItemForm');
@@ -188,16 +167,6 @@ if (sendItemForm) {
         // Validate terms agreement
         if (!formData.terms) {
             showError('Please agree to the Terms of Service and Privacy Policy');
-            return;
-        }
-        
-        // Optional: Check ID uploads (warn but don't block)
-        if (idFront && idBack && (!idFront.files.length || !idBack.files.length)) {
-            showConfirm(
-                'You haven\'t uploaded ID verification. Continue without ID?<br><br><small>(ID may be required for high-value items)</small>',
-                () => submitForm(formData, submitBtn, originalText),
-                null
-            );
             return;
         }
         
