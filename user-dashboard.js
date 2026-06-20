@@ -456,21 +456,23 @@ function applyVerifStatus(data) {
     }
 
     // Show correct area
+    const profBadge = document.getElementById('profileVerifiedBadge');
+
     if (status === 'approved') {
         upload?.style.setProperty('display','none');
         pending?.style.setProperty('display','none');
         approved?.style.setProperty('display','block');
-        // Update profile badge
-        const profBadge = document.querySelector('.verified-badge');
-        if (profBadge) profBadge.style.display = '';
+        if (profBadge) profBadge.style.display = 'inline-flex';
     } else if (status === 'pending') {
         upload?.style.setProperty('display','none');
         pending?.style.setProperty('display','block');
         approved?.style.setProperty('display','none');
+        if (profBadge) profBadge.style.display = 'none';
     } else {
         upload?.style.setProperty('display','block');
         pending?.style.setProperty('display','none');
         approved?.style.setProperty('display','none');
+        if (profBadge) profBadge.style.display = 'none';
         // Mark already-uploaded photos
         if (data.has_id_front) markDone('id_front');
         if (data.has_id_back)  markDone('id_back');

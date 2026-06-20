@@ -95,7 +95,7 @@
         .verif-status-area {
             text-align: center; padding: 1.5rem 1rem;
         }
-        .verif-status-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .verif-status-icon { margin-bottom: 0.5rem; display: flex; justify-content: center; }
         .verif-status-area h4 { color: #0A1A2F; margin: 0 0 0.4rem; }
         .verif-status-area p  { color: #6B7280; font-size: 0.88rem; margin: 0; }
     </style>
@@ -149,7 +149,7 @@
                     <div class="user-info">
                         <div class="user-name-row">
                             <h2 id="userName">Loading...</h2>
-                            <span class="verified-badge">✓ Verified</span>
+                            <span class="verified-badge" id="profileVerifiedBadge" style="display:none;">✓ Verified</span>
                         </div>
                         <p class="user-handle" id="userHandle">@...</p>
                         <p class="user-location" id="userLocation">📍 Loading...</p>
@@ -179,7 +179,13 @@
             <!-- ID Verification Card -->
             <div class="verif-card" id="verifCard">
                 <div class="verif-header">
-                    <div class="verif-icon" id="verifIcon">🪪</div>
+                    <div class="verif-icon" id="verifIcon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                            <rect x="2" y="5" width="20" height="14" rx="2" stroke="#D4AF37" stroke-width="1.8"/>
+                            <circle cx="8" cy="12" r="2.3" stroke="#D4AF37" stroke-width="1.5"/>
+                            <path d="M13 10h6M13 14h4" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
                     <div>
                         <h3 class="verif-title" id="verifTitle">Identity Verification</h3>
                         <p class="verif-sub" id="verifSub">Required before placing or accepting orders</p>
@@ -236,14 +242,24 @@
 
                 <!-- Pending state -->
                 <div id="verifPendingArea" style="display:none;" class="verif-status-area">
-                    <div class="verif-status-icon">⏳</div>
+                    <div class="verif-status-icon">
+                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="9.5" stroke="#F59E0B" stroke-width="1.8"/>
+                            <path d="M12 7v5l3.5 2" stroke="#F59E0B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
                     <h4>Under Review</h4>
                     <p>Your documents are being reviewed. This usually takes up to 24 hours.</p>
                 </div>
 
                 <!-- Approved state -->
                 <div id="verifApprovedArea" style="display:none;" class="verif-status-area">
-                    <div class="verif-status-icon">✅</div>
+                    <div class="verif-status-icon">
+                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="9.5" stroke="#10B981" stroke-width="1.8"/>
+                            <path d="M7.5 12.5l2.8 2.8L16.5 9" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
                     <h4>Identity Verified</h4>
                     <p>Your account is fully verified. You can send and carry items.</p>
                 </div>
