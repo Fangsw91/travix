@@ -2435,6 +2435,11 @@ body {
     color: #1E40AF;
 }
 
+.badge-red {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
 .btn-actions {
     background: transparent;
     border: none;

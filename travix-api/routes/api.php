@@ -6,6 +6,7 @@ use App\Http\Controllers\API\ShipmentController;
 use App\Http\Controllers\API\TripController;
 use App\Http\Controllers\API\ChatController;
 use App\Http\Controllers\API\VerificationController;
+use App\Http\Controllers\API\AdminController;
 use Illuminate\Support\Facades\Route;
 
 // Public config
@@ -170,5 +171,21 @@ Route::middleware('auth:sanctum')->group(function () {
                 'created_at'   => $s->created_at->diffForHumans(),
             ]),
         ]);
+    });
+
+    // Admin — protected by both auth:sanctum (outer group) and admin middleware
+    Route::middleware('admin')->prefix('admin')->group(function () {
+        Route::get('/stats',         [AdminController::class, 'stats']);
+        Route::get('/users',         [AdminController::class, 'users']);
+        Route::post('/users/{id}/suspend', [AdminController::class, 'suspendUser']);
+        Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
+
+        Route::get('/shipments',     [AdminController::class, 'shipments']);
+
+        Route::get('/verification-requests', [AdminController::class, 'verificationRequests']);
+        Route::post('/verification-requests/{id}/approve', [AdminController::class, 'approveVerification']);
+        Route::post('/verification-requests/{id}/reject',  [AdminController::class, 'rejectVerification']);
+
+        Route::get('/payments',      [AdminController::class, 'payments']);
     });
 });

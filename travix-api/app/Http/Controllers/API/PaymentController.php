@@ -39,7 +39,7 @@ class PaymentController extends Controller
 
         Stripe::setApiKey(config('services.stripe.secret'));
 
-        $amountInCents = (int) round($shipment->price * 100);
+        $amountInCents = (int) round($shipment->total_amount * 100);
 
         $paymentIntent = PaymentIntent::create([
             'amount'   => $amountInCents,
@@ -53,7 +53,7 @@ class PaymentController extends Controller
         return response()->json([
             'success'       => true,
             'client_secret' => $paymentIntent->client_secret,
-            'amount'        => $shipment->price,
+            'amount'        => $shipment->total_amount,
             'shipment'      => $shipment->load('traveler'),
         ]);
     }
@@ -75,14 +75,14 @@ class PaymentController extends Controller
             return response()->json(['success' => false, 'message' => 'Payment not completed'], 400);
         }
 
-        $platformFee    = round($shipment->price * 0.10, 2);
-        $travelerAmount = round($shipment->price * 0.90, 2);
+        $platformFee    = round($shipment->total_amount * 0.15, 2);
+        $travelerAmount = round($shipment->total_amount * 0.85, 2);
 
         Transaction::create([
             'shipment_id'        => $shipment->id,
             'sender_id'          => $shipment->sender_id,
             'traveler_id'        => $shipment->traveler_id,
-            'amount'             => $shipment->price,
+            'amount'             => $shipment->total_amount,
             'platform_fee'       => $platformFee,
             'traveler_amount'    => $travelerAmount,
             'currency'           => 'usd',

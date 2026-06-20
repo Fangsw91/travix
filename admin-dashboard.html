@@ -42,8 +42,8 @@
                             <path d="M22 24C22 19.5817 18.4183 16 14 16C9.58172 16 6 19.5817 6 24" stroke="white" stroke-width="2" stroke-linecap="round"/>
                         </svg>
                     </div>
-                    <div class="stat-badge green">+12%</div>
-                    <div class="stat-value">2,847</div>
+                    <div class="stat-badge green" id="statUsersGrowth">+0%</div>
+                    <div class="stat-value" id="statTotalUsers">—</div>
                     <div class="stat-label">Total Users</div>
                 </div>
 
@@ -54,8 +54,8 @@
                             <path d="M8 16L14 20L20 16" stroke="white" stroke-width="2" stroke-linejoin="round"/>
                         </svg>
                     </div>
-                    <div class="stat-badge green">+8%</div>
-                    <div class="stat-value">156</div>
+                    <div class="stat-badge green" id="statShipmentsGrowth">+0%</div>
+                    <div class="stat-value" id="statActiveShipments">—</div>
                     <div class="stat-label">Active Shipments</div>
                 </div>
 
@@ -65,8 +65,8 @@
                             <text x="14" y="20" text-anchor="middle" fill="white" font-size="18" font-weight="bold">$</text>
                         </svg>
                     </div>
-                    <div class="stat-badge green">+23%</div>
-                    <div class="stat-value">$24,580</div>
+                    <div class="stat-badge green" id="statRevenueGrowth">+0%</div>
+                    <div class="stat-value" id="statRevenue">—</div>
                     <div class="stat-label">Revenue (Month)</div>
                 </div>
 
@@ -76,8 +76,8 @@
                             <path d="M6 20L12 14L16 18L22 8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </div>
-                    <div class="stat-badge green">+2%</div>
-                    <div class="stat-value">94.2%</div>
+                    <div class="stat-badge green" id="statCompletionBadge">—</div>
+                    <div class="stat-value" id="statCompletionRate">—</div>
                     <div class="stat-label">Completion Rate</div>
                 </div>
             </div>
@@ -143,39 +143,8 @@
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>John Doe</td>
-                                        <td>john@example.com</td>
-                                        <td><span class="badge badge-gold">Both</span></td>
-                                        <td><span class="badge badge-green">Verified</span></td>
-                                        <td>Jan 2024</td>
-                                        <td><button class="btn-actions">⋮</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Sarah Smith</td>
-                                        <td>sarah@example.com</td>
-                                        <td><span class="badge badge-gold">Sender</span></td>
-                                        <td><span class="badge badge-green">Verified</span></td>
-                                        <td>Feb 2024</td>
-                                        <td><button class="btn-actions">⋮</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Mike Chen</td>
-                                        <td>mike@example.com</td>
-                                        <td><span class="badge badge-gold">Traveler</span></td>
-                                        <td><span class="badge badge-yellow">Pending</span></td>
-                                        <td>Mar 2024</td>
-                                        <td><button class="btn-actions">⋮</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Emma Wilson</td>
-                                        <td>emma@example.com</td>
-                                        <td><span class="badge badge-gold">Both</span></td>
-                                        <td><span class="badge badge-green">Verified</span></td>
-                                        <td>Jan 2024</td>
-                                        <td><button class="btn-actions">⋮</button></td>
-                                    </tr>
+                                <tbody id="usersTableBody">
+                                    <tr><td colspan="6" style="text-align:center;padding:2rem;color:#9CA3AF;">Loading...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -193,138 +162,65 @@
                                         <circle cx="7" cy="7" r="5" stroke="#6B7280" stroke-width="2"/>
                                         <path d="M11 11L14 14" stroke="#6B7280" stroke-width="2" stroke-linecap="round"/>
                                     </svg>
-                                    <input type="text" placeholder="Search shipments...">
+                                    <input type="text" placeholder="Search shipments..." id="searchShipments">
                                 </div>
-                                <button class="btn-export">Filter</button>
+                                <button class="btn-export" id="refreshShipmentsBtn">Refresh</button>
                             </div>
                         </div>
                         <div class="table-container">
                             <table class="data-table">
                                 <thead>
                                     <tr>
-                                        <th>Shipment ID</th>
+                                        <th>Order ID</th>
                                         <th>Sender</th>
                                         <th>Traveler</th>
                                         <th>Route</th>
                                         <th>Status</th>
                                         <th>Amount</th>
-                                        <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>SH-001</td>
-                                        <td>John Doe</td>
-                                        <td>Sarah Smith</td>
-                                        <td>NYC → London</td>
-                                        <td><span class="badge badge-blue">In Transit</span></td>
-                                        <td>$45</td>
-                                        <td><button class="btn-actions">⋮</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td>SH-002</td>
-                                        <td>Mike Chen</td>
-                                        <td>Emma Wilson</td>
-                                        <td>Paris → Tokyo</td>
-                                        <td><span class="badge badge-green">Delivered</span></td>
-                                        <td>$78</td>
-                                        <td><button class="btn-actions">⋮</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td>SH-003</td>
-                                        <td>Sarah Smith</td>
-                                        <td>John Doe</td>
-                                        <td>Berlin → NYC</td>
-                                        <td><span class="badge badge-yellow">Pending</span></td>
-                                        <td>$62</td>
-                                        <td><button class="btn-actions">⋮</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td>SH-004</td>
-                                        <td>Emma Wilson</td>
-                                        <td>Mike Chen</td>
-                                        <td>London → Dubai</td>
-                                        <td><span class="badge badge-blue">In Transit</span></td>
-                                        <td>$55</td>
-                                        <td><button class="btn-actions">⋮</button></td>
-                                    </tr>
+                                <tbody id="shipmentsTableBody">
+                                    <tr><td colspan="6" style="text-align:center;padding:2rem;color:#9CA3AF;">Loading...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- Requests Tab -->
+                <!-- Requests Tab — Pending ID Verifications -->
                 <div class="tab-pane" id="requests-tab">
                     <div class="content-card">
-                        <h3 style="margin-bottom: 1.5rem;">Pending Requests</h3>
-                        <div class="requests-list">
-                            <div class="request-item">
-                                <div class="request-info">
-                                    <div class="request-id">
-                                        REQ-101
-                                        <span class="priority-badge high">High</span>
-                                    </div>
-                                    <div class="request-desc">Alex Johnson - ID Verification</div>
-                                </div>
-                                <div class="request-actions-buttons">
-                                    <button class="btn-review">Review</button>
-                                    <button class="btn-resolve">Resolve</button>
-                                </div>
-                            </div>
-
-                            <div class="request-item">
-                                <div class="request-info">
-                                    <div class="request-id">
-                                        REQ-102
-                                        <span class="priority-badge high">High</span>
-                                    </div>
-                                    <div class="request-desc">Lisa Brown - Dispute Resolution</div>
-                                </div>
-                                <div class="request-actions-buttons">
-                                    <button class="btn-review">Review</button>
-                                    <button class="btn-resolve">Resolve</button>
-                                </div>
-                            </div>
-
-                            <div class="request-item">
-                                <div class="request-info">
-                                    <div class="request-id">
-                                        REQ-103
-                                        <span class="priority-badge medium">Medium</span>
-                                    </div>
-                                    <div class="request-desc">Tom Davis - Account Issue</div>
-                                </div>
-                                <div class="request-actions-buttons">
-                                    <button class="btn-review">Review</button>
-                                    <button class="btn-resolve">Resolve</button>
-                                </div>
-                            </div>
+                        <div class="content-header">
+                            <h3>Pending Verification Requests</h3>
+                            <button class="btn-export" id="refreshRequestsBtn">Refresh</button>
+                        </div>
+                        <div class="requests-list" id="requestsList">
+                            <p style="text-align:center;padding:2rem;color:#9CA3AF;">Loading...</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Payments Tab -->
+                <!-- Payments Tab — Live Transactions -->
                 <div class="tab-pane" id="payments-tab">
                     <div class="payments-grid">
                         <div class="content-card">
                             <h3 style="margin-bottom: 1.5rem;">Revenue Overview</h3>
                             <div class="revenue-list">
                                 <div class="revenue-item">
-                                    <span>Total Revenue (2024)</span>
-                                    <strong>$284,560</strong>
-                                </div>
-                                <div class="revenue-item">
                                     <span>This Month</span>
-                                    <strong class="text-green">$24,580</strong>
+                                    <strong class="text-green" id="revThisMonth">$0.00</strong>
                                 </div>
                                 <div class="revenue-item">
-                                    <span>Last Month</span>
-                                    <strong>$19,420</strong>
+                                    <span>Total Transactions</span>
+                                    <strong id="revTotalCount">0</strong>
                                 </div>
                                 <div class="revenue-item">
-                                    <span>Platform Fee (15%)</span>
-                                    <strong>$42,684</strong>
+                                    <span>Held in Escrow</span>
+                                    <strong class="text-gold" id="revEscrow">$0.00</strong>
+                                </div>
+                                <div class="revenue-item">
+                                    <span>Released to Travelers</span>
+                                    <strong class="text-blue" id="revReleased">$0.00</strong>
                                 </div>
                             </div>
                         </div>
@@ -333,20 +229,20 @@
                             <h3 style="margin-bottom: 1.5rem;">Payment Status</h3>
                             <div class="revenue-list">
                                 <div class="revenue-item">
-                                    <span>Pending Payouts</span>
-                                    <strong class="text-gold">$8,450</strong>
+                                    <span>Escrow</span>
+                                    <strong class="text-gold" id="statusEscrowCount">0</strong>
                                 </div>
                                 <div class="revenue-item">
-                                    <span>Processing</span>
-                                    <strong class="text-blue">$3,240</strong>
+                                    <span>Released</span>
+                                    <strong class="text-blue" id="statusReleasedCount">0</strong>
                                 </div>
                                 <div class="revenue-item">
-                                    <span>Completed</span>
-                                    <strong class="text-green">$272,870</strong>
+                                    <span>Refunded</span>
+                                    <strong class="text-green" id="statusRefundedCount">0</strong>
                                 </div>
                                 <div class="revenue-item">
-                                    <span>Disputed</span>
-                                    <strong class="text-red">$1,240</strong>
+                                    <span>Failed</span>
+                                    <strong class="text-red" id="statusFailedCount">0</strong>
                                 </div>
                             </div>
                         </div>
@@ -355,41 +251,10 @@
                     <div class="content-card" style="margin-top: 1.5rem;">
                         <div class="content-header">
                             <h3>Recent Transactions</h3>
-                            <button class="btn-view-all">View All</button>
+                            <button class="btn-export" id="refreshPaymentsBtn">Refresh</button>
                         </div>
-                        <div class="transactions-list">
-                            <div class="transaction-item">
-                                <div>
-                                    <div class="transaction-id">TXN-445</div>
-                                    <div class="transaction-name">Sarah Smith</div>
-                                </div>
-                                <div class="transaction-right">
-                                    <div class="transaction-amount text-green">+$45.00</div>
-                                    <div class="transaction-date">Dec 12, 2024</div>
-                                </div>
-                            </div>
-
-                            <div class="transaction-item">
-                                <div>
-                                    <div class="transaction-id">TXN-444</div>
-                                    <div class="transaction-name">Mike Chen</div>
-                                </div>
-                                <div class="transaction-right">
-                                    <div class="transaction-amount text-green">+$78.00</div>
-                                    <div class="transaction-date">Dec 11, 2024</div>
-                                </div>
-                            </div>
-
-                            <div class="transaction-item">
-                                <div>
-                                    <div class="transaction-id">TXN-443</div>
-                                    <div class="transaction-name">Emma Wilson</div>
-                                </div>
-                                <div class="transaction-right">
-                                    <div class="transaction-amount text-green">+$62.00</div>
-                                    <div class="transaction-date">Dec 10, 2024</div>
-                                </div>
-                            </div>
+                        <div class="transactions-list" id="transactionsList">
+                            <p style="text-align:center;padding:2rem;color:#9CA3AF;">Loading...</p>
                         </div>
                     </div>
                 </div>
@@ -397,6 +262,7 @@
         </div>
     </main>
 
+    <script src="js/api-config.js"></script>
     <script src="modal.js"></script>
     <script src="admin-dashboard.js"></script>
 </body>
