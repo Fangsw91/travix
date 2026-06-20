@@ -146,6 +146,45 @@ function renderRequestCard(shipment) {
     `;
 }
 
+// ── Demo data — shown when API returns empty/fails (for live demos) ───────────
+function getDeliveryDemoRequests() {
+    return [
+        {
+            order_id: 'TRX-2026-DEMO1', item_name: 'iPhone 15 Pro Max',
+            category: 'Electronics', weight: 0.4, total_amount: '$25.08',
+            from: 'Jordan', to: 'Saudi Arabia', pickup_location: 'Jordan', destination: 'Saudi Arabia',
+            pickup_date: addDeliveryDays(1),
+            description: 'Brand new, sealed in original box. Handle with care.',
+            sender: { id: 701, name: 'Khaled Ammari' },
+            status: 'requested',
+        },
+        {
+            order_id: 'TRX-2026-DEMO2', item_name: 'Wedding Gift Box',
+            category: 'Gifts', weight: 1.2, total_amount: '$18.40',
+            from: 'Jordan', to: 'Saudi Arabia', pickup_location: 'Jordan', destination: 'Saudi Arabia',
+            pickup_date: addDeliveryDays(3),
+            description: 'Fragile — contains glassware. Please handle gently.',
+            sender: { id: 702, name: 'Rania Tamimi' },
+            status: 'requested',
+        },
+        {
+            order_id: 'TRX-2026-DEMO3', item_name: 'Important Documents',
+            category: 'Documents', weight: 0.2, total_amount: '$9.50',
+            from: 'Jordan', to: 'Saudi Arabia', pickup_location: 'Jordan', destination: 'Saudi Arabia',
+            pickup_date: addDeliveryDays(2),
+            description: "Sealed envelope, university transcripts.",
+            sender: { id: 703, name: "Mohammed Sa'di" },
+            status: 'requested',
+        },
+    ];
+}
+
+function addDeliveryDays(n) {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    return d.toISOString().split('T')[0];
+}
+
 async function loadDeliveryRequests() {
     const container = document.getElementById('requestsGrid') ||
                       document.querySelector('.requests-grid') ||
@@ -157,13 +196,11 @@ async function loadDeliveryRequests() {
     try {
         const data = await ShipmentAPI.getAvailable();
         const shipments = data.shipments?.data || data.shipments || [];
-        if (!shipments.length) {
-            container.innerHTML = '<p style="text-align:center;padding:2rem;color:#6B7280;">No delivery requests available right now.</p>';
-            return;
-        }
-        container.innerHTML = shipments.map(renderRequestCard).join('');
+        const finalList = shipments.length ? shipments : getDeliveryDemoRequests();
+        container.innerHTML = finalList.map(renderRequestCard).join('');
     } catch (err) {
-        container.innerHTML = '<p style="text-align:center;padding:2rem;color:#EF4444;">Failed to load requests. Please try again.</p>';
+        // Show demo data instead of an error — keeps demos smooth
+        container.innerHTML = getDeliveryDemoRequests().map(renderRequestCard).join('');
     }
 }
 
