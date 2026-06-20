@@ -6,13 +6,29 @@
  */
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Give the country-dropdown script a moment to finish building selects
-    setTimeout(runAutoFill, 350);
+    waitForDropdownsThenFill();
 });
 
+function waitForDropdownsThenFill() {
+    let attempts = 0;
+    const maxAttempts = 40; // 40 × 100ms = 4s max wait
+
+    const interval = setInterval(function () {
+        attempts++;
+        const dropdownsReady = window.cdInstances && Object.keys(window.cdInstances).length > 0;
+
+        if (dropdownsReady || attempts >= maxAttempts) {
+            clearInterval(interval);
+            runAutoFill();
+        }
+    }, 100);
+}
+
 function runAutoFill() {
-    if (document.getElementById('sendItemForm'))  fillSendItemDemo();
-    if (document.getElementById('travelerForm'))  fillTravelerDemo();
+    console.log('[demo-autofill] running... cdInstances ready:',
+        !!(window.cdInstances && Object.keys(window.cdInstances).length));
+    if (document.getElementById('sendItemForm')) { console.log('[demo-autofill] filling Send Item form'); fillSendItemDemo(); }
+    if (document.getElementById('travelerForm')) { console.log('[demo-autofill] filling Traveler form'); fillTravelerDemo(); }
 }
 
 // ── Send an Item ────────────────────────────────────────────────────────────
@@ -81,15 +97,28 @@ function setChecked(id, checked) {
 // Selects a country in the custom dropdown (built by country-dropdown logic)
 // and also sets the underlying hidden input directly as a fallback.
 function selectCountryDemo(wrapperId, hiddenId, code, name) {
+    const wrapper = document.getElementById(wrapperId);
+    if (!wrapper) {
+        console.warn('[demo-autofill] dropdown wrapper not found:', wrapperId);
+        return;
+    }
+
     try {
-        if (window.cdInstances && window.cdInstances[wrapperId]) {
+        if (window.cdInstances && window.cdInstances[wrapperId] && typeof window.cdInstances[wrapperId].select === 'function') {
             window.cdInstances[wrapperId].select(code);
             return;
         }
-    } catch (e) {}
+    } catch (e) {
+        console.warn('[demo-autofill] cdInstances.select failed for', wrapperId, e);
+    }
+
     // Fallback: set hidden input + visible text directly
+    console.warn('[demo-autofill] using fallback for', wrapperId);
     const hidden = document.getElementById(hiddenId);
-    if (hidden) hidden.value = name;
+    if (hidden) {
+        hidden.value = name;
+        hidden.dispatchEvent(new Event('change', { bubbles: true }));
+    }
     const txt = document.getElementById(wrapperId + '_txt');
     if (txt) txt.innerHTML = `<span style="color:#111">${name}</span>`;
 }
