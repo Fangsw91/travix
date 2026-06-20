@@ -19,8 +19,11 @@ class CreateAdminUser extends Command
 
         $existing = User::where('email', $email)->first();
         if ($existing) {
-            $existing->update(['role' => 'admin']);
-            $this->info("✅ Existing user '{$email}' promoted to admin.");
+            $existing->update([
+                'role'     => 'admin',
+                'password' => $password, // model casts 'hashed' — always sync password too
+            ]);
+            $this->info("✅ Existing user '{$email}' promoted to admin and password updated.");
             return self::SUCCESS;
         }
 
