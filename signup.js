@@ -30,7 +30,7 @@ if (signupForm) {
         removeMessages();
 
         // Validation
-        if (!name || !email || !password || !confirmPassword) {
+        if (!name || !email || !phone || !password || !confirmPassword) {
             showError('Please fill in all required fields');
             return;
         }
