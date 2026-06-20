@@ -55,10 +55,18 @@ if (signinForm) {
                 
                 // Show success and redirect
                 showSuccess('Sign in successful! Redirecting...');
-                
+
+                // Admin accounts always go straight to the admin dashboard
+                if (data.user.role === 'admin') {
+                    setTimeout(() => {
+                        window.location.href = 'admin-dashboard.html';
+                    }, 1200);
+                    return;
+                }
+
                 // Check if there's a redirect URL
                 const redirectUrl = localStorage.getItem('redirectAfterLogin');
-                
+
                 setTimeout(() => {
                     if (redirectUrl) {
                         // Clear the redirect URL
@@ -145,19 +153,11 @@ function togglePasswordVisibility() {
 
 // Floating buttons functionality
 const calculatorBtn = document.querySelector('.calculator-btn');
-const adminBtn = document.querySelector('.admin-btn');
 
 if (calculatorBtn) {
     calculatorBtn.addEventListener('click', () => {
         console.log('Calculator clicked');
         window.location.href = 'calculator.html';
-    });
-}
-
-if (adminBtn) {
-    adminBtn.addEventListener('click', () => {
-        console.log('Admin Access clicked');
-        window.location.href = 'admin.html';
     });
 }
 

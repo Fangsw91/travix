@@ -6,7 +6,15 @@ let refreshTimer = null;
 // ── Auth guard ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('auth_token');
-    if (!token) { window.location.href = 'admin-login.html'; return; }
+    if (!token) { window.location.href = 'signin.html'; return; }
+
+    let user = null;
+    try { user = JSON.parse(localStorage.getItem('user') || 'null'); } catch(e) {}
+
+    if (!user || user.role !== 'admin') {
+        window.location.href = 'user-dashboard.html';
+        return;
+    }
 
     setupTabs();
     setupSearch();
@@ -54,7 +62,7 @@ async function adminApi(path, options = {}) {
         throw new Error('Forbidden');
     }
     if (res.status === 401) {
-        window.location.href = 'admin-login.html';
+        window.location.href = 'signin.html';
         throw new Error('Unauthorized');
     }
 
