@@ -23,6 +23,13 @@
         (function() {
             try {
                 const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+                // Admin accounts get redirected immediately, before any content paints
+                if (user && user.role === 'admin') {
+                    window.location.replace('admin-dashboard.html');
+                    return;
+                }
+
                 const role = (user && user.role === 'traveler') ? 'traveler' : 'sender';
                 document.documentElement.setAttribute('data-role', role);
             } catch(e) {}

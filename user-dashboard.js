@@ -11,6 +11,15 @@ async function initDashboard() {
     const token = localStorage.getItem('auth_token');
     if (!token) { window.location.href = 'signin.html'; return; }
 
+    // Admin accounts don't belong on the regular dashboard — send them to the right place
+    try {
+        const cachedUser = JSON.parse(localStorage.getItem('user') || 'null');
+        if (cachedUser && cachedUser.role === 'admin') {
+            window.location.href = 'admin-dashboard.html';
+            return;
+        }
+    } catch(e) {}
+
     // Role already applied by CSS — just sync JS state
     detectRole();
     setupTabs();
