@@ -376,24 +376,31 @@ class ShipmentController extends Controller
             'cancelled'        => '#EF4444',
         ];
 
+        // Estimate the traveler's cut using the same fixed 15% platform fee used
+        // everywhere else (PaymentController, dashboard stats). This is shown to
+        // the traveler BEFORE they accept, since no Transaction exists yet at
+        // the 'requested' stage — the real traveler_amount is locked in at payment time.
+        $estimatedTravelerAmount = round($s->total_amount * 0.85, 2);
+
         return [
-            'id'           => $s->id,
-            'order_id'     => $s->order_id,
-            'item_name'    => $s->item_name,
-            'category'     => $s->category,
-            'weight'       => $s->weight,
-            'value'        => $s->value,
-            'description'  => $s->description,
-            'route'        => "{$s->pickup_location} → {$s->destination}",
-            'from'         => $s->pickup_location,
-            'to'           => $s->destination,
-            'pickup_date'  => $s->pickup_date,
-            'total_amount' => '$' . number_format($s->total_amount, 2),
-            'status'       => $s->status,
-            'status_label' => Shipment::$statusLabels[$s->status] ?? $s->status,
-            'status_color' => $statusColors[$s->status] ?? '#6B7280',
-            'sender'       => $s->sender ? ['id' => $s->sender->id, 'name' => $s->sender->name] : null,
-            'created_at'   => $s->created_at->diffForHumans(),
+            'id'              => $s->id,
+            'order_id'        => $s->order_id,
+            'item_name'       => $s->item_name,
+            'category'        => $s->category,
+            'weight'          => $s->weight,
+            'value'           => $s->value,
+            'description'     => $s->description,
+            'route'           => "{$s->pickup_location} → {$s->destination}",
+            'from'            => $s->pickup_location,
+            'to'              => $s->destination,
+            'pickup_date'     => $s->pickup_date,
+            'total_amount'    => '$' . number_format($s->total_amount, 2),
+            'traveler_amount' => '$' . number_format($estimatedTravelerAmount, 2),
+            'status'          => $s->status,
+            'status_label'    => Shipment::$statusLabels[$s->status] ?? $s->status,
+            'status_color'    => $statusColors[$s->status] ?? '#6B7280',
+            'sender'          => $s->sender ? ['id' => $s->sender->id, 'name' => $s->sender->name] : null,
+            'created_at'      => $s->created_at->diffForHumans(),
         ];
     }
 }

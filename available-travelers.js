@@ -122,7 +122,7 @@ async function loadData() {
         if (userRole === 'traveler') {
             // Traveler sees matched delivery requests
             const data = await apiCall('/shipments/available');
-            allItems = (data.shipments && data.shipments.length) ? data.shipments : getDemoRequests();
+            allItems = data.shipments || [];
         } else {
             // Sender sees available trips
             const params = new URLSearchParams(location.search);
@@ -132,14 +132,14 @@ async function loadData() {
             if (from) qs.set('from', from);
             if (to)   qs.set('to',   to);
             const data   = await apiCall('/trips/available?' + qs.toString());
-            allItems = (data.trips && data.trips.length) ? data.trips : getDemoTrips();
+            allItems = data.trips || [];
         }
         filteredItems = [...allItems];
         renderGrid(filteredItems);
     } catch(e) {
-        console.error('Load error, showing demo data:', e);
-        allItems = userRole === 'traveler' ? getDemoRequests() : getDemoTrips();
-        filteredItems = [...allItems];
+        console.error('Load error:', e);
+        allItems = [];
+        filteredItems = [];
         renderGrid(filteredItems);
     }
 }
@@ -166,7 +166,7 @@ function renderGrid(items) {
 
 // ── Traveler sees: Shipment Request Card ──────────────────────────────────────
 function renderRequestCard(s) {
-    const reward = (parseFloat(s.total_amount?.replace('$','') || 0) * 0.85).toFixed(2);
+    const reward = String(s.traveler_amount || '$0.00').replace('$', '');
     return `
     <div class="traveler-card">
         <div class="traveler-card-header">

@@ -183,8 +183,7 @@ if (searchInput) {
 
 function renderRequestCard(shipment) {
     const sender  = shipment.sender || {};
-    const rawAmount = String(shipment.total_amount || shipment.price || 0).replace('$', '');
-    const reward    = (parseFloat(rawAmount) * 0.85).toFixed(2);
+    const reward    = String(shipment.traveler_amount || '$0.00').replace('$', '');
     const date    = shipment.pickup_date ? new Date(shipment.pickup_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
     const isAccepted = shipment.status && shipment.status !== 'requested';
 
@@ -272,13 +271,13 @@ async function loadDeliveryRequests() {
 
     try {
         const data = await ShipmentAPI.getAvailable();
-        const shipments = data.shipments?.data || data.shipments || [];
-        allRequests = shipments.length ? shipments : getDeliveryDemoRequests();
-        container.innerHTML = allRequests.map(renderRequestCard).join('');
+        allRequests = data.shipments?.data || data.shipments || [];
+        container.innerHTML = allRequests.length
+            ? allRequests.map(renderRequestCard).join('')
+            : '<p style="text-align:center;padding:2rem;color:#6B7280;">No delivery requests available right now.</p>';
     } catch (err) {
-        // Show demo data instead of an error — keeps demos smooth
-        allRequests = getDeliveryDemoRequests();
-        container.innerHTML = allRequests.map(renderRequestCard).join('');
+        allRequests = [];
+        container.innerHTML = '<p style="text-align:center;padding:2rem;color:#EF4444;">Could not load requests. Please try again.</p>';
     }
 }
 

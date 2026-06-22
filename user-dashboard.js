@@ -108,6 +108,7 @@ async function refreshAll() {
         loadStats(),
         loadShipments('sender'),
         loadShipments('traveler'),
+        loadTrips(),
     ]);
 }
 
@@ -300,6 +301,75 @@ function shipmentCard(s, role) {
             </div>` : ''}
         </div>
     </div>`;
+}
+
+// ─── Trips list (traveler's posted trips) ─────────────────────────────────────
+async function loadTrips() {
+    const listEl = document.getElementById('trips-list');
+    if (!listEl) return;
+
+    try {
+        const data = await TripAPI.getMyTrips();
+        if (!data.success) return;
+
+        if (!data.trips.length) {
+            listEl.innerHTML = `
+                <div class="empty-state" style="text-align:center;padding:2rem 1rem;color:#6B7280;">
+                    <p style="font-weight:600;color:#374151;margin-bottom:0.5rem;">No trips posted yet</p>
+                    <a href="become-traveler.html" style="display:inline-block;padding:0.6rem 1.5rem;background:#D4AF37;color:#fff;border-radius:8px;font-weight:600;text-decoration:none;font-size:0.875rem;">+ Post a Trip</a>
+                </div>`;
+            return;
+        }
+
+        listEl.innerHTML = data.trips.map(tripCard).join('');
+
+    } catch (e) {
+        console.warn('Trips error:', e.message);
+        if (!listEl.querySelector('.trip-item')) {
+            listEl.innerHTML = '<p style="text-align:center;padding:2rem;color:#9CA3AF;">Could not load trips.</p>';
+        }
+    }
+}
+
+function tripCard(t) {
+    const statusColors = { active: '#3B82F6', completed: '#10B981', cancelled: '#EF4444' };
+    const color = statusColors[t.status] || '#6B7280';
+    const categories = Array.isArray(t.accepted_categories) ? t.accepted_categories.join(', ') : (t.accepted_categories || '');
+
+    return `
+    <div class="trip-item" style="display:flex;align-items:center;justify-content:space-between;padding:1rem;border-radius:10px;border:1px solid #F3F4F6;margin-bottom:0.75rem;background:#fff;">
+        <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+                <span style="font-weight:700;color:#111;font-size:0.95rem;">${t.from_location || t.from_city} → ${t.to_location || t.to_city}</span>
+                <span style="font-size:0.72rem;font-weight:600;padding:2px 8px;border-radius:999px;background:${color}22;color:${color};white-space:nowrap;text-transform:capitalize;">${t.status}</span>
+            </div>
+            <div style="font-size:0.82rem;color:#6B7280;">Departs ${formatTripDate(t.departure_date)} · Up to ${t.available_space} kg · $${t.price_per_kg}/kg</div>
+            ${categories ? `<div style="font-size:0.78rem;color:#9CA3AF;margin-top:0.15rem;">Accepts: ${categories}</div>` : ''}
+        </div>
+        ${t.status === 'active' ? `
+        <button onclick="cancelTrip(${t.id})" style="font-size:0.75rem;color:#EF4444;background:#fff;border:1px solid #EF4444;border-radius:6px;padding:4px 10px;cursor:pointer;white-space:nowrap;">Cancel</button>` : ''}
+    </div>`;
+}
+
+function formatTripDate(dateStr) {
+    if (!dateStr) return '—';
+    const date  = new Date(dateStr);
+    const today = new Date();
+    const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+
+    if (date.toDateString() === today.toDateString())    return 'today';
+    if (date.toDateString() === tomorrow.toDateString())  return 'tomorrow';
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+async function cancelTrip(tripId) {
+    if (!confirm('Cancel this trip? Senders will no longer be able to select you for it.')) return;
+    try {
+        await TripAPI.cancel(tripId);
+        loadTrips();
+    } catch (e) {
+        alert(e.message || 'Could not cancel trip.');
+    }
 }
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
