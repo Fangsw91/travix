@@ -7,6 +7,7 @@ use App\Models\Shipment;
 use App\Models\ShipmentEvent;
 use App\Models\Trip;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -173,6 +174,98 @@ class ShipmentController extends Controller
         ]);
 
         return response()->json(['success' => true, 'message' => 'Shipment accepted']);
+    }
+
+    // ── POST /api/shipments/accept-demo — promote a demo request into a real,
+    // persisted shipment so it shows up everywhere (admin dashboard, DB, etc.)
+    // instead of only existing in the traveler's browser localStorage.
+    public function acceptDemo(Request $request)
+    {
+        $validated = $request->validate([
+            'order_id'     => 'required|string',
+            'item_name'    => 'required|string',
+            'category'     => 'nullable|string',
+            'weight'       => 'required|numeric',
+            'total_amount' => 'required|numeric',
+            'pickup_location' => 'required|string',
+            'destination'      => 'required|string',
+            'pickup_date'      => 'nullable|date',
+            'sender_name'      => 'nullable|string',
+        ]);
+
+        // Reuse a single system "Demo Sender" account for all demo shipments,
+        // creating it once if it doesn't exist yet.
+        $demoSender = User::firstOrCreate(
+            ['email' => 'demo-sender@travix.internal'],
+            [
+                'name'     => $validated['sender_name'] ?? 'Omar Al-Rashid',
+                'password' => bin2hex(random_bytes(16)), // unusable random password
+                'role'     => 'sender',
+                'phone'    => '+962700000000',
+                'verification_status' => 'approved',
+            ]
+        );
+
+        // If this demo order was already promoted before, just return it
+        $existing = Shipment::where('order_id', $validated['order_id'])->first();
+        if ($existing) {
+            if ($existing->status === 'requested') {
+                $existing->update([
+                    'traveler_id'       => $request->user()->id,
+                    'status'            => 'accepted',
+                    'status_updated_at' => now(),
+                ]);
+            }
+            return response()->json(['success' => true, 'shipment' => $existing]);
+        }
+
+        $shipment = Shipment::create([
+            'order_id'         => $validated['order_id'],
+            'sender_id'        => $demoSender->id,
+            'traveler_id'      => $request->user()->id,
+            'item_name'        => $validated['item_name'],
+            'category'         => $validated['category'] ?? 'General',
+            'weight'           => $validated['weight'],
+            'total_amount'     => $validated['total_amount'],
+            'pickup_location'  => $validated['pickup_location'],
+            'destination'      => $validated['destination'],
+            'pickup_date'      => $validated['pickup_date'] ?? now()->addDay(),
+            'status'           => 'accepted',
+            'status_updated_at'=> now(),
+        ]);
+
+        ShipmentEvent::create([
+            'shipment_id' => $shipment->id,
+            'status'      => 'requested',
+            'title'       => 'Shipment Requested',
+            'description' => 'Shipment request created',
+            'occurred_at' => now()->subMinutes(5),
+        ]);
+
+        ShipmentEvent::create([
+            'shipment_id' => $shipment->id,
+            'status'      => 'accepted',
+            'title'       => 'Traveler Accepted',
+            'description' => $request->user()->name . ' will carry this item',
+            'occurred_at' => now(),
+        ]);
+
+        // Also create the matching transaction so earnings show correctly everywhere
+        $platformFee    = round($shipment->total_amount * 0.15, 2);
+        $travelerAmount = round($shipment->total_amount - $platformFee, 2);
+
+        \App\Models\Transaction::create([
+            'shipment_id'     => $shipment->id,
+            'sender_id'       => $demoSender->id,
+            'traveler_id'     => $request->user()->id,
+            'amount'          => $shipment->total_amount,
+            'platform_fee'    => $platformFee,
+            'traveler_amount' => $travelerAmount,
+            'status'          => 'escrow',
+            'paid_at'         => now(),
+        ]);
+
+        return response()->json(['success' => true, 'shipment' => $shipment], 201);
     }
 
     // ── POST /api/shipments/{orderId}/pickup — photo upload ──────────────────

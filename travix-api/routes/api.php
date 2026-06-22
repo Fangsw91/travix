@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/',                        [ShipmentController::class, 'store']);
         Route::get('/{orderId}/status',         [ShipmentController::class, 'status']);        // ← Live tracker polls this
         Route::post('/{orderId}/update-status', [ShipmentController::class, 'updateStatus']);  // ← Traveler updates this
+        Route::post('/accept-demo',              [ShipmentController::class, 'acceptDemo']);     // ← Promote demo request to real shipment
         Route::post('/{orderId}/accept',        [ShipmentController::class, 'accept']);        // ← Traveler accepts request
         Route::post('/{orderId}/pickup',        [ShipmentController::class, 'pickup']);        // ← Traveler picks up + uploads photo
         Route::post('/{orderId}/location',      [ShipmentController::class, 'updateLocation']); // ← Traveler pushes GPS

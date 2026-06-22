@@ -127,6 +127,25 @@ function acceptDemoShipment(orderId, itemName) {
     cached.unshift(acceptedShipment);
     localStorage.setItem('cachedShipments_traveler', JSON.stringify(cached));
 
+    // Also create a REAL shipment in the database so it shows up in the admin
+    // dashboard, MySQL, and anywhere else that reads from the backend directly
+    // — not just this browser's localStorage.
+    const rawAmount = parseFloat(String(original.total_amount || '0').replace('$', ''));
+    apiCall('/shipments/accept-demo', {
+        method: 'POST',
+        body: JSON.stringify({
+            order_id:        orderId,
+            item_name:       acceptedShipment.item_name,
+            category:        acceptedShipment.category,
+            weight:          original.weight,
+            total_amount:    rawAmount,
+            pickup_location: original.from || original.pickup_location,
+            destination:     original.to || original.destination,
+            pickup_date:     original.pickup_date,
+            sender_name:     original.sender?.name,
+        }),
+    }).catch(e => console.warn('Could not sync demo shipment to backend:', e));
+
     // Remove it from the available requests list so it doesn't show twice
     allRequests = allRequests.filter(s => s.order_id !== orderId);
     const container = document.getElementById('requestsGrid') ||
