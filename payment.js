@@ -224,8 +224,8 @@ async function handlePaymentSuccess(paymentMethodId) {
             };
 
             const res = await apiCall('/shipments', { method: 'POST', body: JSON.stringify(payload) });
-            if (res.success && res.order_id) {
-                finalOrderId = res.order_id;
+            if (res.success && res.shipment?.order_id) {
+                finalOrderId = res.shipment.order_id;
                 // Note: if traveler_id was sent, backend already sets status='accepted'
                 // No second API call needed.
             }

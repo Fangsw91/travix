@@ -422,10 +422,28 @@ async function showTripConfirmModal(tripId) {
 function proceedToPayment() {
     document.getElementById('tripModal')?.remove();
     const sendItemData = JSON.parse(localStorage.getItem('sendItemData') || '{}');
-    localStorage.setItem('selectedTraveler', JSON.stringify(selectedTripData));
+
+    // Normalize the trip data shape before saving — the API returns the
+    // traveler as a nested object ({id, name, rating, trips}) and uses
+    // price_per_kg (snake_case), but payment.js expects flat fields like
+    // travelerData.name and travelerData.pricePerKg. Flatten it here once,
+    // so every consumer of 'selectedTraveler' gets a consistent shape.
+    const trip = selectedTripData || {};
+    const normalizedTraveler = {
+        id:          trip.traveler?.id ?? null,
+        name:        trip.traveler?.name || 'Traveler',
+        rating:      trip.traveler?.rating ?? 4.8,
+        trips:       trip.traveler?.trips ?? 0,
+        tripId:      trip.id,
+        pricePerKg:  parseFloat(trip.price_per_kg || trip.pricePerKg || 15),
+        from_location: trip.from_location || trip.from,
+        to_location:   trip.to_location   || trip.to,
+    };
+
+    localStorage.setItem('selectedTraveler', JSON.stringify(normalizedTraveler));
     localStorage.setItem('requestedRoute', JSON.stringify({
-        from: selectedTripData?.from_location || selectedTripData?.from,
-        to:   selectedTripData?.to_location   || selectedTripData?.to,
+        from: normalizedTraveler.from_location,
+        to:   normalizedTraveler.to_location,
     }));
     window.location.href = 'payment.html';
 }

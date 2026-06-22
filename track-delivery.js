@@ -809,6 +809,23 @@ function showOrderNotFound() {
             </div>
         `;
     }
+
+    // Hide everything that depends on real shipment data — showing them with
+    // placeholder/NaN values is more confusing than just hiding them.
+    hide('travelerInfoCard');
+    hide('senderInfoCard');
+    hide('earningsCard');
+    hide('travelerActionPanel');
+    document.querySelector('.delivery-details-card')?.style.setProperty('display', 'none');
+    document.querySelector('.map-card')?.style.setProperty('display', 'none');
+
+    const quickActions = document.querySelectorAll('.quick-action-btn, .btn-message-traveler');
+    quickActions.forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.4';
+        btn.style.cursor = 'not-allowed';
+        btn.onclick = (e) => e.preventDefault();
+    });
 }
 
 // ─── Hook into existing polling ───────────────────────────────────────────────

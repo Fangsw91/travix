@@ -38,12 +38,16 @@ class ShipmentController extends Controller
             'receiver_phone'   => 'nullable|string',
             'delivery_address' => 'nullable|string',
             'total_amount'     => 'nullable|numeric|min:0',
+            'traveler_id'      => 'nullable|integer|exists:users,id',
         ]);
 
+        $hasTraveler = !empty($validated['traveler_id']);
+
         $shipment = Shipment::create(array_merge($validated, [
-            'sender_id' => $request->user()->id,
-            'order_id'  => 'TRX-' . date('Y') . '-' . strtoupper(Str::random(6)),
-            'status'    => 'requested',
+            'sender_id'         => $request->user()->id,
+            'order_id'          => 'TRX-' . date('Y') . '-' . strtoupper(Str::random(6)),
+            'status'            => $hasTraveler ? 'accepted' : 'requested',
+            'status_updated_at' => $hasTraveler ? now() : null,
         ]));
 
         ShipmentEvent::create([
@@ -51,8 +55,34 @@ class ShipmentController extends Controller
             'status'      => 'requested',
             'title'       => 'Shipment Requested',
             'description' => 'Your shipment request has been created',
-            'occurred_at' => now(),
+            'occurred_at' => $hasTraveler ? now()->subSeconds(5) : now(),
         ]);
+
+        if ($hasTraveler) {
+            ShipmentEvent::create([
+                'shipment_id' => $shipment->id,
+                'status'      => 'accepted',
+                'title'       => 'Traveler Accepted',
+                'description' => $shipment->traveler->name . ' will carry your item',
+                'occurred_at' => now(),
+            ]);
+
+            // Create the matching transaction immediately so earnings show
+            // correctly everywhere as soon as the shipment exists.
+            $platformFee    = round($shipment->total_amount * 0.15, 2);
+            $travelerAmount = round($shipment->total_amount - $platformFee, 2);
+
+            Transaction::create([
+                'shipment_id'     => $shipment->id,
+                'sender_id'       => $shipment->sender_id,
+                'traveler_id'     => $shipment->traveler_id,
+                'amount'          => $shipment->total_amount,
+                'platform_fee'    => $platformFee,
+                'traveler_amount' => $travelerAmount,
+                'status'          => 'escrow',
+                'paid_at'         => now(),
+            ]);
+        }
 
         return response()->json(['success' => true, 'shipment' => $shipment], 201);
     }
