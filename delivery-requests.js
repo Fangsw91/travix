@@ -78,9 +78,10 @@ function confirmAcceptance(itemName) {
         return;
     }
 
-    // Demo data isn't backed by a real shipment in the database — show a clear message instead of an error
+    // Demo data — simulate a real acceptance so the user can walk through the
+    // full flow (pickup → transit → delivered) without needing a real sender.
     if (String(pendingAcceptShipmentId).includes('DEMO')) {
-        showInfo(`This is sample data for demo purposes — "${itemName}" isn't a real shipment yet. Once real sender requests come in, Accept will work normally.`);
+        acceptDemoShipment(pendingAcceptShipmentId, itemName);
         pendingAcceptShipmentId = null;
         return;
     }
@@ -93,6 +94,52 @@ function confirmAcceptance(itemName) {
         showError(err.message || 'Failed to accept shipment. Please try again.');
         pendingAcceptShipmentId = null;
     });
+}
+
+// ─── Accept a demo request — creates a locally-persisted "accepted" shipment ──
+// so the rest of the flow (dashboard card, track-delivery, pickup-confirm,
+// chat) all work normally without needing a real backend shipment.
+function acceptDemoShipment(orderId, itemName) {
+    const original = allRequests.find(s => s.order_id === orderId) || getDeliveryDemoRequests()[0];
+
+    const acceptedShipment = {
+        id: 'demo-' + orderId,
+        order_id: orderId,
+        item_name: original.item_name || itemName,
+        category: original.category || 'General',
+        weight: original.weight,
+        total_amount: original.total_amount,
+        // Traveler earnings = base (85% rule already baked into demo totals as the base)
+        traveler_amount: original.total_amount,
+        route: `${original.from || original.pickup_location} → ${original.to || original.destination}`,
+        status: 'accepted',
+        status_label: 'Accepted',
+        status_color: '#3B82F6',
+        sender: original.sender,
+        pickup_date: original.pickup_date,
+        created_at: 'Just now',
+    };
+
+    // Persist into the same cache the dashboard reads from instantly on load
+    let cached = [];
+    try { cached = JSON.parse(localStorage.getItem('cachedShipments_traveler') || '[]'); } catch(e) {}
+    cached = cached.filter(s => s.order_id !== orderId); // replace if it already exists
+    cached.unshift(acceptedShipment);
+    localStorage.setItem('cachedShipments_traveler', JSON.stringify(cached));
+
+    // Remove it from the available requests list so it doesn't show twice
+    allRequests = allRequests.filter(s => s.order_id !== orderId);
+    const container = document.getElementById('requestsGrid') ||
+                      document.querySelector('.requests-grid') ||
+                      document.querySelector('.requests-list');
+    if (container) {
+        container.innerHTML = allRequests.length
+            ? allRequests.map(renderRequestCard).join('')
+            : '<p style="text-align:center;padding:2rem;color:#6B7280;">No more requests right now.</p>';
+    }
+
+    showSuccess(`You accepted the delivery for "${itemName}"! Redirecting to your dashboard...`);
+    setTimeout(() => { window.location.href = 'user-dashboard.html'; }, 1500);
 }
 
 // Search Functionality
@@ -194,6 +241,8 @@ function addDeliveryDays(n) {
     return d.toISOString().split('T')[0];
 }
 
+let allRequests = []; // keeps the full list around so filters can work on it
+
 async function loadDeliveryRequests() {
     const container = document.getElementById('requestsGrid') ||
                       document.querySelector('.requests-grid') ||
@@ -205,13 +254,69 @@ async function loadDeliveryRequests() {
     try {
         const data = await ShipmentAPI.getAvailable();
         const shipments = data.shipments?.data || data.shipments || [];
-        const finalList = shipments.length ? shipments : getDeliveryDemoRequests();
-        container.innerHTML = finalList.map(renderRequestCard).join('');
+        allRequests = shipments.length ? shipments : getDeliveryDemoRequests();
+        container.innerHTML = allRequests.map(renderRequestCard).join('');
     } catch (err) {
         // Show demo data instead of an error — keeps demos smooth
-        container.innerHTML = getDeliveryDemoRequests().map(renderRequestCard).join('');
+        allRequests = getDeliveryDemoRequests();
+        container.innerHTML = allRequests.map(renderRequestCard).join('');
     }
 }
+
+// ─── Filters ────────────────────────────────────────────────────────────────
+function toggleFilters() {
+    document.getElementById('filterPanel')?.classList.toggle('open');
+}
+
+function applyFilters() {
+    const dateFrom  = document.getElementById('filterDateFrom')?.value;
+    const dateTo    = document.getElementById('filterDateTo')?.value;
+    const maxWeight = parseFloat(document.getElementById('filterMaxWeight')?.value) || Infinity;
+    const category  = document.getElementById('filterCategory')?.value;
+
+    const filtered = allRequests.filter(s => {
+        if (dateFrom && s.pickup_date && s.pickup_date < dateFrom) return false;
+        if (dateTo   && s.pickup_date && s.pickup_date > dateTo)   return false;
+        if (parseFloat(s.weight || 0) > maxWeight) return false;
+        if (category && category !== 'all' && (s.category || '').toLowerCase() !== category.toLowerCase()) return false;
+        return true;
+    });
+
+    const container = document.getElementById('requestsGrid') ||
+                      document.querySelector('.requests-grid') ||
+                      document.querySelector('.requests-list');
+    if (container) {
+        container.innerHTML = filtered.length
+            ? filtered.map(renderRequestCard).join('')
+            : '<p style="text-align:center;padding:2rem;color:#6B7280;">No requests match these filters.</p>';
+    }
+
+    document.getElementById('filterPanel')?.classList.remove('open');
+}
+
+function resetFilters() {
+    ['filterDateFrom', 'filterDateTo', 'filterMaxWeight'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    const catEl = document.getElementById('filterCategory');
+    if (catEl) catEl.value = 'all';
+
+    const container = document.getElementById('requestsGrid') ||
+                      document.querySelector('.requests-grid') ||
+                      document.querySelector('.requests-list');
+    if (container) container.innerHTML = allRequests.map(renderRequestCard).join('');
+
+    document.getElementById('filterPanel')?.classList.remove('open');
+}
+
+document.addEventListener('click', e => {
+    const panel = document.getElementById('filterPanel');
+    const btn   = document.getElementById('filtersToggleBtn');
+    if (panel && panel.classList.contains('open') && !panel.contains(e.target) && e.target !== btn && !btn?.contains(e.target)) {
+        panel.classList.remove('open');
+    }
+});
 
 document.addEventListener('DOMContentLoaded', loadDeliveryRequests);
 

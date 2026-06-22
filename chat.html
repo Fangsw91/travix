@@ -237,7 +237,7 @@
     const params     = new URLSearchParams(location.search);
     const shipmentId = params.get('shipment');   // numeric DB id
     const orderId    = params.get('order');      // TRX-xxxx (for display)
-    const isDemo     = !shipmentId;
+    const isDemo     = !shipmentId || String(shipmentId).startsWith('demo-') || String(orderId).includes('DEMO');
 
     let currentUser  = null;
     let lastMsgId    = 0;

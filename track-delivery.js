@@ -25,9 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     currentOrderId  = urlParams.get('id') || localStorage.getItem('currentOrderId');
 
-    // No real order to track — show a demo shipment so the page is never empty
-    if (!currentOrderId) {
-        currentOrderId = 'TRX-2026-DEMO1';
+    // No real order to track, OR it's a known demo order — show demo data
+    if (!currentOrderId || String(currentOrderId).includes('DEMO')) {
+        currentOrderId = currentOrderId || 'TRX-2026-DEMO1';
         loadDemoTracking();
         bindButtons();
         return;
@@ -52,24 +52,27 @@ document.addEventListener('DOMContentLoaded', () => {
 function loadDemoTracking() {
     document.getElementById('orderId').textContent = currentOrderId;
 
-    const demoData = {
-        status: 'in_transit',
-        status_label: 'In Transit',
-        status_note: 'Departed Amman, heading to Riyadh',
-        timeline: [
-            { status: 'requested', title: 'Shipment Requested', description: 'Your shipment request has been created', time: '2026-06-21T09:00:00' },
-            { status: 'accepted',  title: 'Traveler Accepted',  description: 'Yousef Khalil will carry your item', time: '2026-06-21T11:30:00' },
-            { status: 'picked_up', title: 'Item Picked Up',     description: 'Traveler picked up the item with proof photo', time: '2026-06-22T08:00:00' },
-            { status: 'in_transit',title: 'In Transit',         description: 'Departed Amman, heading to Riyadh', time: '2026-06-22T14:00:00' },
-        ],
-        traveler: { name: 'Yousef Khalil', rating: 4.9, trips: 62 },
-        pickup_photo_url: null,
+    // Resume from wherever the demo timeline was left (e.g. just accepted from
+    // delivery-requests.html), instead of always jumping straight to in_transit.
+    const savedTimeline = JSON.parse(localStorage.getItem(`demoTimeline_${currentOrderId}`) || 'null');
+
+    const timeline = savedTimeline || [
+        { status: 'requested', title: 'Shipment Requested', description: 'Your shipment request has been created', time: '2026-06-21T09:00:00' },
+        { status: 'accepted',  title: 'Traveler Accepted',  description: 'Yousef Khalil will carry your item', time: new Date().toISOString() },
+    ];
+
+    window.__demoTimeline = timeline;
+    const lastStep = timeline[timeline.length - 1];
+
+    const statusLabelMap = {
+        requested: 'Requested', accepted: 'Accepted', picked_up: 'Picked Up',
+        in_transit: 'In Transit', out_for_delivery: 'Out for Delivery', delivered: 'Delivered',
     };
 
-    updateStatusBadge(demoData.status, demoData.status_label);
-    renderTimeline(demoData.timeline);
-    updateTravelerCard(demoData.traveler);
-    updateStatusNote(demoData.status_note);
+    updateStatusBadge(lastStep.status, statusLabelMap[lastStep.status] || lastStep.status);
+    renderTimeline(timeline);
+    updateTravelerCard({ name: 'Yousef Khalil', rating: 4.9, trips: 62 });
+    updateStatusNote(lastStep.description);
 
     fillDeliveryDetails(
         { from: 'Jordan', to: 'Saudi Arabia' },
@@ -77,7 +80,7 @@ function loadDemoTracking() {
     );
 
     setupQuickActions({ shipmentId: null, orderId: currentOrderId, isDemo: true });
-    setupTravelerControls(demoData.status, { orderId: currentOrderId, isDemo: true });
+    setupTravelerControls(lastStep.status, { orderId: currentOrderId, isDemo: true });
 }
 
 // Stop polling when tab hidden (saves battery/requests)
@@ -986,12 +989,33 @@ function simulateDemoStatusAdvance(newStatus) {
         time: new Date().toISOString(),
     });
 
+    // Persist so the timeline survives page reload / coming back later
+    localStorage.setItem(`demoTimeline_${currentOrderId}`, JSON.stringify(window.__demoTimeline));
+
+    // Keep the dashboard's cached shipment card in sync with the new status
+    updateDemoShipmentInDashboardCache(currentOrderId, newStatus, labels[newStatus] || newStatus);
+
     updateStatusBadge(newStatus, labels[newStatus] || newStatus);
     renderTimeline(window.__demoTimeline);
     renderTravelerActionButton(newStatus);
 
     const btn = document.querySelector('#statusActionButtons button');
     if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+}
+
+// ─── Keep the dashboard's "Active Deliveries" card in sync with demo progress ─
+function updateDemoShipmentInDashboardCache(orderId, status, statusLabel) {
+    const colorMap = {
+        accepted: '#3B82F6', picked_up: '#8B5CF6', in_transit: '#F59E0B',
+        out_for_delivery: '#F97316', delivered: '#10B981',
+    };
+    try {
+        let cached = JSON.parse(localStorage.getItem('cachedShipments_traveler') || '[]');
+        cached = cached.map(s => s.order_id === orderId
+            ? { ...s, status, status_label: statusLabel, status_color: colorMap[status] || '#6B7280' }
+            : s);
+        localStorage.setItem('cachedShipments_traveler', JSON.stringify(cached));
+    } catch(e) {}
 }
 
 // ─── Pickup photo modal ───────────────────────────────────────────────────────

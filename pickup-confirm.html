@@ -216,7 +216,7 @@
     <script>
     const params  = new URLSearchParams(location.search);
     const orderId = params.get('order') || 'TRX-2026-DEMO1';
-    const isDemo  = !params.get('order');
+    const isDemo  = !params.get('order') || String(params.get('order')).includes('DEMO');
     let selectedFile = null;
 
     document.addEventListener('DOMContentLoaded', () => {

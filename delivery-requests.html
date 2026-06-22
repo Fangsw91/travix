@@ -77,13 +77,13 @@
                     </svg>
                     <input type="text" id="searchInput" placeholder="Search requests...">
                 </div>
-                <button class="filter-btn">
+                <button class="filter-btn" id="filtersToggleBtn" onclick="toggleFilters()">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M2 4H18M5 9H15M8 14H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
                     Filters
                 </button>
-                <button class="date-range-btn">
+                <button class="date-range-btn" onclick="toggleFilters()">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="2"/>
                         <path d="M3 8H17M7 2V6M13 2V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -91,6 +91,36 @@
                     Date Range
                 </button>
             </div>
+
+            <!-- Filter Panel -->
+            <div class="filter-panel" id="filterPanel" style="display:none;flex-wrap:wrap;gap:1rem;align-items:flex-end;background:#fff;border:1.5px solid #E5E7EB;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1rem;">
+                <div style="display:flex;flex-direction:column;gap:0.35rem;min-width:160px;flex:1;">
+                    <label style="font-size:0.8rem;font-weight:600;color:#6B7280;">Pickup Date From</label>
+                    <input type="date" id="filterDateFrom" style="border:1.5px solid #E5E7EB;border-radius:8px;padding:0.55rem 0.75rem;font-size:0.9rem;outline:none;">
+                </div>
+                <div style="display:flex;flex-direction:column;gap:0.35rem;min-width:160px;flex:1;">
+                    <label style="font-size:0.8rem;font-weight:600;color:#6B7280;">Pickup Date To</label>
+                    <input type="date" id="filterDateTo" style="border:1.5px solid #E5E7EB;border-radius:8px;padding:0.55rem 0.75rem;font-size:0.9rem;outline:none;">
+                </div>
+                <div style="display:flex;flex-direction:column;gap:0.35rem;min-width:140px;flex:1;">
+                    <label style="font-size:0.8rem;font-weight:600;color:#6B7280;">Max Weight (kg)</label>
+                    <input type="number" id="filterMaxWeight" placeholder="e.g. 5" min="0.1" step="0.1" style="border:1.5px solid #E5E7EB;border-radius:8px;padding:0.55rem 0.75rem;font-size:0.9rem;outline:none;">
+                </div>
+                <div style="display:flex;flex-direction:column;gap:0.35rem;min-width:160px;flex:1;">
+                    <label style="font-size:0.8rem;font-weight:600;color:#6B7280;">Category</label>
+                    <select id="filterCategory" style="border:1.5px solid #E5E7EB;border-radius:8px;padding:0.55rem 0.75rem;font-size:0.9rem;outline:none;">
+                        <option value="all">All Categories</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="documents">Documents</option>
+                        <option value="gifts">Gifts</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <button onclick="applyFilters()" style="padding:0.6rem 1.2rem;background:#D4AF37;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.9rem;white-space:nowrap;">Apply</button>
+                <button onclick="resetFilters()" style="padding:0.6rem 1rem;background:#fff;color:#6B7280;border:1.5px solid #E5E7EB;border-radius:8px;cursor:pointer;font-size:0.9rem;">Reset</button>
+            </div>
+            <style>.filter-panel.open { display: flex !important; }</style>
 
             <!-- Delivery Requests Grid — populated dynamically by delivery-requests.js -->
             <div class="delivery-requests-grid" id="requestsGrid">
