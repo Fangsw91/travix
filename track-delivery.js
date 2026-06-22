@@ -4,6 +4,21 @@ const POLL_INTERVAL = 10000; // 10 seconds
 let pollTimer       = null;
 let lastStatus      = null;
 let currentOrderId  = null;
+let currentTraveler = null;
+let isTravelerView  = false;
+
+// Canonical shipment lifecycle — used to compute done/current and to drive
+// the traveler's "Update Status" action buttons in correct order.
+const STATUS_SEQUENCE = ['requested', 'accepted', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered'];
+const STATUS_LABELS = {
+    requested:        'Shipment Requested',
+    accepted:         'Traveler Accepted',
+    picked_up:        'Item Picked Up',
+    in_transit:       'In Transit',
+    out_for_delivery: 'Out for Delivery',
+    delivered:        'Delivered',
+    cancelled:        'Cancelled',
+};
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -47,7 +62,7 @@ function loadDemoTracking() {
             { status: 'picked_up', title: 'Item Picked Up',     description: 'Traveler picked up the item with proof photo', time: '2026-06-22T08:00:00' },
             { status: 'in_transit',title: 'In Transit',         description: 'Departed Amman, heading to Riyadh', time: '2026-06-22T14:00:00' },
         ],
-        traveler: { name: 'Yousef Khalil', rating: 4.9 },
+        traveler: { name: 'Yousef Khalil', rating: 4.9, trips: 62 },
         pickup_photo_url: null,
     };
 
@@ -60,6 +75,9 @@ function loadDemoTracking() {
         { from: 'Jordan', to: 'Saudi Arabia' },
         { itemName: 'iPhone 15 Pro Max', weight: '0.4', category: 'Electronics' }
     );
+
+    setupQuickActions({ shipmentId: null, orderId: currentOrderId, isDemo: true });
+    setupTravelerControls(demoData.status, { orderId: currentOrderId, isDemo: true });
 }
 
 // Stop polling when tab hidden (saves battery/requests)
@@ -120,6 +138,12 @@ function updateUI(data) {
 
     // ── Switch to traveler view if this user is the traveler ──
     if (data.is_traveler) activateTravelerView(data);
+
+    // ── Wire up Quick Action buttons (Message, Report Issue, etc.) once ──
+    if (!window.__quickActionsBound) {
+        window.__quickActionsBound = true;
+        setupQuickActions({ shipmentId: data.shipment_id, orderId: currentOrderId, isDemo: false });
+    }
 }
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
@@ -147,9 +171,50 @@ function updateStatusBadge(status, label) {
 }
 
 // ─── Timeline renderer ────────────────────────────────────────────────────────
-function renderTimeline(steps) {
+function renderTimeline(rawSteps) {
     const container = document.querySelector('.status-timeline');
-    if (!container || !steps) return;
+    if (!container || !rawSteps) return;
+
+    // Figure out the furthest reached status from the raw events,
+    // so steps before it are "done" and the matching one is "current".
+    const reachedStatuses = rawSteps.map(s => s.status);
+    const lastReachedIndex = Math.max(
+        ...reachedStatuses.map(s => STATUS_SEQUENCE.indexOf(s)).filter(i => i >= 0),
+        0
+    );
+
+    // Build a lookup of actual event data (title/description/time) per status
+    const eventByStatus = {};
+    rawSteps.forEach(s => { eventByStatus[s.status] = s; });
+
+    const isCancelled = reachedStatuses.includes('cancelled');
+
+    const steps = STATUS_SEQUENCE.map((status, i) => {
+        const event   = eventByStatus[status];
+        const done    = i < lastReachedIndex || (i === lastReachedIndex && i < STATUS_SEQUENCE.length - 1 && !!event);
+        const current = i === lastReachedIndex && !!event;
+        return {
+            status,
+            label:       STATUS_LABELS[status] || status,
+            description: event?.description || (i <= lastReachedIndex ? '' : 'Waiting...'),
+            time:        event?.time ? formatEventTime(event.time) : null,
+            location:    event?.location || null,
+            done:        i < lastReachedIndex,
+            current:     i === lastReachedIndex,
+        };
+    });
+
+    if (isCancelled) {
+        container.innerHTML = `
+            <div style="text-align:center;padding:2rem;color:#EF4444;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin:0 auto 1rem;">
+                    <circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6" stroke-linecap="round"/>
+                </svg>
+                <h3 style="margin:0;color:#0A1A2F;">Shipment Cancelled</h3>
+                <p style="color:#6B7280;font-size:0.9rem;">${eventByStatus.cancelled?.description || ''}</p>
+            </div>`;
+        return;
+    }
 
     container.innerHTML = steps.map((step, i) => {
         const stateClass = step.done
@@ -240,6 +305,13 @@ function renderTimeline(steps) {
 }
 
 // ─── Step Icons ───────────────────────────────────────────────────────────────
+function formatEventTime(iso) {
+    try {
+        const d = new Date(iso);
+        return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    } catch(e) { return iso; }
+}
+
 function getStepIcon(status, active) {
     const icons = {
         requested:        `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6" stroke-linecap="round"/></svg>`,
@@ -273,10 +345,18 @@ function updateStatusNote(note) {
 
 // ─── Traveler card update ─────────────────────────────────────────────────────
 function updateTravelerCard(traveler) {
+    if (!traveler || !traveler.name) return;
+    currentTraveler = traveler;
+
     const nameEl   = document.querySelector('.traveler-info-card h4');
     const ratingEl = document.querySelector('.traveler-info-card .traveler-rating strong');
-    if (nameEl && traveler.name)     nameEl.textContent   = traveler.name;
-    if (ratingEl && traveler.rating) ratingEl.textContent = traveler.rating;
+    const tripsEl  = document.querySelector('.traveler-info-card .traveler-rating span:last-child');
+    const avatarEl = document.querySelector('.traveler-info-card .traveler-avatar-large');
+
+    if (nameEl)   nameEl.textContent   = traveler.name;
+    if (ratingEl) ratingEl.textContent = traveler.rating ? parseFloat(traveler.rating).toFixed(1) : '—';
+    if (tripsEl)  tripsEl.textContent  = traveler.trips ? `(${traveler.trips} trips)` : '';
+    if (avatarEl) avatarEl.textContent = traveler.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
 // ─── Status change toast ──────────────────────────────────────────────────────
@@ -832,6 +912,15 @@ async function advanceStatus(newStatus) {
     const btn = document.querySelector('#statusActionButtons button');
     if (btn) { btn.disabled = true; btn.style.opacity = '0.7'; }
 
+    // Demo mode — simulate the update locally, no real API call
+    if (String(currentOrderId).includes('DEMO')) {
+        setTimeout(() => {
+            showSuccess('Status updated to: ' + newStatus.replace(/_/g, ' '));
+            simulateDemoStatusAdvance(newStatus);
+        }, 500);
+        return;
+    }
+
     try {
         await apiCall(`/shipments/${currentOrderId}/update-status`, {
             method: 'POST',
@@ -844,6 +933,41 @@ async function advanceStatus(newStatus) {
         showError(err.message || 'Could not update status. Please try again.');
         if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
     }
+}
+
+// ─── Demo: advance the local timeline without touching the backend ───────────
+function simulateDemoStatusAdvance(newStatus) {
+    const labels = {
+        picked_up:        'Item Picked Up',
+        in_transit:       'In Transit',
+        out_for_delivery: 'Out for Delivery',
+        delivered:        'Delivered',
+    };
+    const descriptions = {
+        picked_up:        'Traveler picked up the item with proof photo',
+        in_transit:       'Departed Amman, heading to Riyadh',
+        out_for_delivery: 'Arrived in Riyadh, on the way to recipient',
+        delivered:        'Package delivered successfully',
+    };
+
+    window.__demoTimeline = window.__demoTimeline || [
+        { status: 'requested', title: 'Shipment Requested', description: 'Your shipment request has been created', time: '2026-06-21T09:00:00' },
+        { status: 'accepted',  title: 'Traveler Accepted',  description: 'Yousef Khalil will carry your item', time: '2026-06-21T11:30:00' },
+    ];
+
+    window.__demoTimeline.push({
+        status: newStatus,
+        title: labels[newStatus] || newStatus,
+        description: descriptions[newStatus] || '',
+        time: new Date().toISOString(),
+    });
+
+    updateStatusBadge(newStatus, labels[newStatus] || newStatus);
+    renderTimeline(window.__demoTimeline);
+    renderTravelerActionButton(newStatus);
+
+    const btn = document.querySelector('#statusActionButtons button');
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
 }
 
 // ─── Pickup photo modal ───────────────────────────────────────────────────────
@@ -986,10 +1110,161 @@ function previewPickupPhoto(file) {
     reader.readAsDataURL(file);
 }
 
-function closePickupModal() {
-    const modal = document.getElementById('pickupModal');
-    if (modal) modal.remove();
+// ─── Demo: activate traveler controls so the flow can be tried without a real order ──
+function setupTravelerControls(status, opts) {
+    if (!opts.isDemo) return; // real orders already use activateTravelerView via fetchStatus
+
+    travelerViewActive = true;
+    show('travelerActionPanel');
+    show('earningsCard');
+    show('senderInfoCard');
+    hide('travelerInfoCard');
+
+    setText('earningAmount', '$34.00');
+    setText('senderName', 'Khaled Ammari');
+    setText('senderAvatar', 'KA');
+    setText('senderItemName', 'iPhone 15 Pro Max');
+
+    renderTravelerActionButton(status);
 }
+
+// ─── Quick action buttons: Message, Report Issue, Update Delivery Time, Receipt ──
+function setupQuickActions(opts) {
+    const { shipmentId, orderId, isDemo } = opts;
+
+    // Message Traveler / Message Sender buttons
+    document.querySelectorAll('.btn-message-traveler').forEach(btn => {
+        btn.onclick = () => {
+            if (isDemo) {
+                window.location.href = `chat.html`; // opens demo conversation
+            } else {
+                window.location.href = `chat.html?shipment=${shipmentId || ''}&order=${orderId}`;
+            }
+        };
+    });
+
+    // Report Issue
+    document.querySelectorAll('.quick-action-btn').forEach(btn => {
+        const label = btn.textContent.trim();
+
+        if (label.includes('Report Issue')) {
+            btn.onclick = () => showReportIssueModal(orderId);
+        }
+        if (label.includes('Update Delivery Time')) {
+            btn.onclick = () => showUpdateDeliveryTimeModal(orderId, isDemo);
+        }
+        if (label.includes('View Receipt')) {
+            btn.onclick = () => showReceiptModal(orderId, isDemo);
+        }
+    });
+}
+
+// ─── Report Issue modal ────────────────────────────────────────────────────────
+function showReportIssueModal(orderId) {
+    const modal = document.createElement('div');
+    modal.id = 'reportIssueModal';
+    modal.style.cssText = `position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;padding:1rem;`;
+    modal.innerHTML = `
+        <div style="background:#fff;border-radius:16px;width:100%;max-width:440px;padding:1.5rem;">
+            <h3 style="margin:0 0 0.4rem;color:#0A1A2F;">Report an Issue</h3>
+            <p style="color:#6B7280;font-size:0.88rem;margin:0 0 1rem;">Order: <strong>${orderId}</strong></p>
+            <select id="issueType" style="width:100%;padding:0.65rem;border:1.5px solid #E5E7EB;border-radius:8px;margin-bottom:0.75rem;font-size:0.9rem;">
+                <option value="damaged">Item arrived damaged</option>
+                <option value="delayed">Delivery is delayed</option>
+                <option value="wrong_item">Wrong item received</option>
+                <option value="no_contact">Traveler not responding</option>
+                <option value="other">Other</option>
+            </select>
+            <textarea id="issueDetails" rows="4" placeholder="Describe the issue..." style="width:100%;padding:0.65rem;border:1.5px solid #E5E7EB;border-radius:8px;font-size:0.9rem;box-sizing:border-box;resize:vertical;margin-bottom:1rem;"></textarea>
+            <div style="display:flex;gap:0.75rem;">
+                <button onclick="document.getElementById('reportIssueModal').remove()" style="flex:1;padding:0.7rem;border:1.5px solid #E5E7EB;background:#fff;border-radius:8px;cursor:pointer;">Cancel</button>
+                <button onclick="submitReportIssue('${orderId}')" style="flex:1;padding:0.7rem;background:#EF4444;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700;">Submit Report</button>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+function submitReportIssue(orderId) {
+    document.getElementById('reportIssueModal')?.remove();
+    showSuccess(`Issue reported for ${orderId}. Our support team will review it shortly.`);
+}
+
+// ─── Update Delivery Time modal ────────────────────────────────────────────────
+function showUpdateDeliveryTimeModal(orderId, isDemo) {
+    const modal = document.createElement('div');
+    modal.id = 'updateTimeModal';
+    modal.style.cssText = `position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;padding:1rem;`;
+    modal.innerHTML = `
+        <div style="background:#fff;border-radius:16px;width:100%;max-width:400px;padding:1.5rem;">
+            <h3 style="margin:0 0 0.4rem;color:#0A1A2F;">Update Estimated Delivery</h3>
+            <p style="color:#6B7280;font-size:0.88rem;margin:0 0 1rem;">Order: <strong>${orderId}</strong></p>
+            <label style="display:block;font-size:0.85rem;font-weight:600;color:#374151;margin-bottom:0.4rem;">New estimated date</label>
+            <input type="date" id="newDeliveryDate" style="width:100%;padding:0.65rem;border:1.5px solid #E5E7EB;border-radius:8px;font-size:0.9rem;box-sizing:border-box;margin-bottom:1rem;">
+            <div style="display:flex;gap:0.75rem;">
+                <button onclick="document.getElementById('updateTimeModal').remove()" style="flex:1;padding:0.7rem;border:1.5px solid #E5E7EB;background:#fff;border-radius:8px;cursor:pointer;">Cancel</button>
+                <button onclick="submitUpdateDeliveryTime('${orderId}', ${isDemo})" style="flex:1;padding:0.7rem;background:#D4AF37;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700;">Update</button>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+async function submitUpdateDeliveryTime(orderId, isDemo) {
+    const newDate = document.getElementById('newDeliveryDate')?.value;
+    if (!newDate) { showError('Please pick a date.'); return; }
+
+    document.getElementById('updateTimeModal')?.remove();
+
+    if (isDemo) {
+        const el = document.querySelector('#deliveryDetails [data-field="est_delivery"]') || document.getElementById('estDelivery');
+        if (el) el.textContent = newDate;
+        showSuccess('Estimated delivery date updated.');
+        return;
+    }
+
+    try {
+        await apiCall(`/shipments/${orderId}/update-status`, {
+            method: 'POST',
+            body: JSON.stringify({ status: lastStatus || 'in_transit', status_note: `Estimated delivery updated to ${newDate}` }),
+        });
+        showSuccess('Estimated delivery date updated.');
+        fetchStatus();
+    } catch(e) {
+        showError(e.message || 'Could not update delivery time.');
+    }
+}
+
+// ─── View Receipt modal ────────────────────────────────────────────────────────
+function showReceiptModal(orderId, isDemo) {
+    const modal = document.createElement('div');
+    modal.id = 'receiptModal';
+    modal.style.cssText = `position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;padding:1rem;`;
+    modal.innerHTML = `
+        <div style="background:#fff;border-radius:16px;width:100%;max-width:420px;padding:1.5rem;">
+            <div style="text-align:center;margin-bottom:1rem;">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.8" style="margin:0 auto 0.5rem;">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 8h18M9 8v13"/>
+                </svg>
+                <h3 style="margin:0;color:#0A1A2F;">Receipt</h3>
+                <p style="color:#9CA3AF;font-size:0.82rem;margin:0.2rem 0 0;">${orderId}</p>
+            </div>
+            <div style="border-top:1px dashed #E5E7EB;border-bottom:1px dashed #E5E7EB;padding:1rem 0;margin-bottom:1rem;">
+                <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#374151;padding:0.3rem 0;"><span>Item</span><strong>iPhone 15 Pro Max</strong></div>
+                <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#374151;padding:0.3rem 0;"><span>Weight Fee</span><strong>$3.20</strong></div>
+                <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#374151;padding:0.3rem 0;"><span>Value Fee</span><strong>$20.00</strong></div>
+                <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#374151;padding:0.3rem 0;"><span>Platform Fee</span><strong>$3.48</strong></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;color:#0A1A2F;margin-bottom:1.25rem;">
+                <span>Total Paid</span><span style="color:#D4AF37;">$26.68</span>
+            </div>
+            <button onclick="document.getElementById('receiptModal').remove()" style="width:100%;padding:0.75rem;background:#0A1A2F;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700;">Close</button>
+        </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+// (show/hide/setText helpers are defined once, near the end of this file)
 
 async function submitPickup() {
     const input   = document.getElementById('pickupPhotoInput');
@@ -1009,6 +1284,16 @@ async function submitPickup() {
     btn.disabled  = true;
     btn.textContent = '⏳ Uploading…';
 
+    // Demo mode — skip the real upload, just simulate success
+    if (String(currentOrderId).includes('DEMO')) {
+        setTimeout(() => {
+            closePickupModal();
+            showSuccess('Item picked up! Photo saved successfully.');
+            simulateDemoStatusAdvance('picked_up');
+        }, 800);
+        return;
+    }
+
     try {
         const formData = new FormData();
         formData.append('photo', input.files[0]);
@@ -1016,7 +1301,7 @@ async function submitPickup() {
 
         // Must NOT set Content-Type header — browser sets it with boundary for multipart
         const token = localStorage.getItem('auth_token');
-        const res   = await fetch(`http://localhost:8000/api/shipments/${currentOrderId}/pickup`, {
+        const res   = await fetch(`${window.API_BASE_URL}/shipments/${currentOrderId}/pickup`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -1039,6 +1324,10 @@ async function submitPickup() {
             errorEl.style.display = 'block';
         }
     }
+}
+
+function closePickupModal() {
+    document.getElementById('pickupModal')?.remove();
 }
 
 // ─── Share traveler's GPS location ───────────────────────────────────────────

@@ -102,20 +102,35 @@ class ShipmentController extends Controller
     public function status(Request $request, $orderId)
     {
         $shipment = Shipment::where('order_id', $orderId)
-            ->with(['events' => fn($q) => $q->orderBy('occurred_at')])
+            ->with(['events' => fn($q) => $q->orderBy('occurred_at'), 'traveler', 'sender'])
             ->firstOrFail();
 
+        $user       = $request->user();
+        $isTraveler = $user && $shipment->traveler_id === $user->id;
+
         return response()->json([
-            'success'      => true,
-            'order_id'     => $shipment->order_id,
-            'status'       => $shipment->status,
-            'status_note'  => $shipment->status_note,
-            'pickup_photo' => $shipment->pickup_photo
+            'success'       => true,
+            'order_id'      => $shipment->order_id,
+            'shipment_id'   => $shipment->id,
+            'status'        => $shipment->status,
+            'status_label'  => self::$statusLabels[$shipment->status] ?? $shipment->status,
+            'status_note'   => $shipment->status_note,
+            'item_name'     => $shipment->item_name,
+            'weight'        => $shipment->weight,
+            'total_amount'  => $shipment->total_amount,
+            'is_traveler'   => $isTraveler,
+            'pickup_photo_url' => $shipment->pickup_photo
                 ? asset('storage/' . $shipment->pickup_photo)
                 : null,
-            'traveler'     => $shipment->traveler_id ? [
-                'id'   => $shipment->traveler->id ?? null,
-                'name' => $shipment->traveler->name ?? null,
+            'traveler'     => $shipment->traveler ? [
+                'id'     => $shipment->traveler->id,
+                'name'   => $shipment->traveler->name,
+                'rating' => $shipment->traveler->rating ?? 4.8,
+                'trips'  => $shipment->traveler->trips_completed ?? 0,
+            ] : null,
+            'sender'       => $shipment->sender ? [
+                'id'   => $shipment->sender->id,
+                'name' => $shipment->sender->name,
             ] : null,
             'timeline'     => $shipment->events->map(fn($e) => [
                 'status'      => $e->status,
