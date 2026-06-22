@@ -45,6 +45,7 @@
         html[data-role="traveler"] #traveler-view { display: block !important; }
         html[data-role="sender"]   #tabSender     { display: none; }
         html[data-role="traveler"] #tabTraveler   { display: none; }
+        html[data-role="traveler"] #statSentBlock { display: none; }
 
         /* ── Verification status — set instantly from cached value, no flash ── */
         /* Default state matches "unverified": upload area visible, badge says Unverified */
@@ -184,7 +185,7 @@
                                 <strong id="statDeliveries">0</strong>
                                 <span>Total Deliveries</span>
                             </div>
-                            <div class="user-stat">
+                            <div class="user-stat" id="statSentBlock">
                                 <strong id="statSent">0</strong>
                                 <span>Items Sent</span>
                             </div>
@@ -382,7 +383,6 @@
                         <div class="dashboard-section" style="grid-column: 1 / -1;">
                             <div class="section-header">
                                 <h3>Active Deliveries</h3>
-                                <button class="btn-secondary-small" onclick="window.location.href='delivery-requests.html'">Browse Requests</button>
                             </div>
                             <div class="deliveries-list" id="traveler-deliveries-list">
                                 <div style="display:flex;align-items:center;gap:1rem;padding:1rem;border-radius:10px;border:1px solid #F3F4F6;margin-bottom:0.75rem;background:#fff;">
@@ -399,8 +399,17 @@
                                 <h3>Your Trips</h3>
                                 <button class="btn-link-small" onclick="window.location.href='become-traveler.html'">+ Add Trip</button>
                             </div>
-                            <div class="trips-list">
-                                <p style="text-align: center; padding: 2rem; color: #6B7280;">No trips posted yet</p>
+                            <div class="trips-list" id="trips-list">
+                                <div class="trip-item" style="display:flex;align-items:center;justify-content:space-between;padding:1rem;border-radius:10px;border:1px solid #F3F4F6;margin-bottom:0.75rem;background:#fff;">
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+                                            <span style="font-weight:700;color:#111;font-size:0.95rem;">Jordan → Saudi Arabia</span>
+                                            <span style="font-size:0.72rem;font-weight:600;padding:2px 8px;border-radius:999px;background:#3B82F622;color:#3B82F6;white-space:nowrap;">Active</span>
+                                        </div>
+                                        <div style="font-size:0.82rem;color:#6B7280;">Departs tomorrow · Up to 8 kg · $12/kg</div>
+                                        <div style="font-size:0.78rem;color:#9CA3AF;margin-top:0.15rem;">Accepts: Electronics, Documents, Gifts</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
