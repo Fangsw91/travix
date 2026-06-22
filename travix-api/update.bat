@@ -1,7 +1,8 @@
 @echo off
 echo ========================================
-echo   Travix Update - pulls latest code
-echo   Your database and .env are NEVER touched
+echo   Travix Update - MySQL Edition
+echo   Your database is a real MySQL DB now,
+echo   so this NEVER touches your data.
 echo ========================================
 echo.
 
