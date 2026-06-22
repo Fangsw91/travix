@@ -470,18 +470,19 @@ function applyVerifStatus(data) {
 
     // Show correct area
     const profBadge = document.getElementById('profileVerifiedBadge');
+    const verifCard = document.getElementById('verifCard');
 
     if (status === 'approved') {
-        upload?.style.setProperty('display','none');
-        pending?.style.setProperty('display','none');
-        approved?.style.setProperty('display','block');
+        if (verifCard) verifCard.style.display = 'none';
         if (profBadge) profBadge.style.display = 'inline-flex';
     } else if (status === 'pending') {
+        if (verifCard) verifCard.style.display = '';
         upload?.style.setProperty('display','none');
         pending?.style.setProperty('display','block');
         approved?.style.setProperty('display','none');
         if (profBadge) profBadge.style.display = 'none';
     } else {
+        if (verifCard) verifCard.style.display = '';
         upload?.style.setProperty('display','block');
         pending?.style.setProperty('display','none');
         approved?.style.setProperty('display','none');

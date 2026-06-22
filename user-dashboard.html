@@ -48,9 +48,7 @@
 
         /* ── Verification status — set instantly from cached value, no flash ── */
         /* Default state matches "unverified": upload area visible, badge says Unverified */
-        html[data-verif="approved"] #verifUploadArea       { display: none !important; }
-        html[data-verif="approved"] #verifPendingArea       { display: none !important; }
-        html[data-verif="approved"] #verifApprovedArea      { display: block !important; }
+        html[data-verif="approved"] #verifCard              { display: none !important; }
         html[data-verif="approved"] #profileVerifiedBadge   { display: inline-flex !important; }
 
         html[data-verif="pending"] #verifUploadArea         { display: none !important; }
