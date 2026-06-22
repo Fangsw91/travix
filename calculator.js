@@ -146,7 +146,7 @@ function calculate() {
     const base        = Math.max(weightFee + valueFee, 5); // minimum $5
     const platformFee = base * 0.15 * 2;              // platform fee doubled (30% of base)
     const total       = base + platformFee;            // sender pays base + doubled platform fee
-    const travelerEarnings = base * 0.85;              // traveler earnings unchanged (85% of base)
+    const travelerEarnings = base;                     // traveler keeps the full base — Total = Traveler + Platform Fee
 
     // DHL comparison: $45/kg + 5% of item value
     const dhlCost  = (weight * 45) + (itemValue * 0.05);
