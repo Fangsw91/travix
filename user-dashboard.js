@@ -29,14 +29,35 @@ async function initDashboard() {
     renderProfile();
     loadVerificationStatus(); // load verification status silently
 
-    // Fetch fresh data from API silently in background
-    await syncUser();
-    await refreshAll();
+    // Render cached shipments INSTANTLY (stale-while-revalidate) — no waiting on network
+    renderShipmentsFromCache('sender');
+    renderShipmentsFromCache('traveler');
+
+    // Fetch fresh data from API in the background — run in parallel, not sequential
+    syncUser();
+    refreshAll();
 
     showLiveIndicator();
 
     // Live refresh every 15s — silent (no opacity changes)
     refreshTimer = setInterval(refreshAll, REFRESH_INTERVAL);
+}
+
+// ─── Instant render from last-known cache (avoids "Loading..." flash) ────────
+function renderShipmentsFromCache(role) {
+    const listId = role === 'sender' ? 'sender-deliveries-list' : 'traveler-deliveries-list';
+    const listEl = document.getElementById(listId);
+    if (!listEl) return;
+
+    try {
+        const cached = JSON.parse(localStorage.getItem(`cachedShipments_${role}`) || 'null');
+        if (cached && cached.length) {
+            listEl.innerHTML = cached.map(s => shipmentCard(s, role)).join('');
+        } else if (cached && cached.length === 0) {
+            listEl.innerHTML = emptyState(role);
+        }
+        // If nothing cached yet, leave the skeleton in the HTML as-is — first ever load
+    } catch(e) {}
 }
 
 // ─── Sync user from API ───────────────────────────────────────────────────────
@@ -134,14 +155,17 @@ async function loadShipments(role) {
     const listEl = document.getElementById(listId);
     if (!listEl) return;
 
-    // Show skeleton on first load only
-    if (!listEl.querySelector('.delivery-item')) {
+    // Show skeleton only if there's nothing on screen yet (no cache, no prior render)
+    if (!listEl.querySelector('.delivery-item') && !listEl.querySelector('.empty-state')) {
         listEl.innerHTML = skeletonCards(3);
     }
 
     try {
         const data = await apiCall(`/dashboard/shipments?role=${role}`);
         if (!data.success) return;
+
+        // Cache for instant render on next page load
+        localStorage.setItem(`cachedShipments_${role}`, JSON.stringify(data.shipments));
 
         if (!data.shipments.length) {
             listEl.innerHTML = emptyState(role);
@@ -237,7 +261,7 @@ function shipmentCard(s, role) {
 function emptyState(role) {
     const isSender = role === 'sender';
     return `
-    <div style="text-align:center;padding:2.5rem 1rem;color:#6B7280;">
+    <div class="empty-state" style="text-align:center;padding:2.5rem 1rem;color:#6B7280;">
         <div style="font-size:2.5rem;margin-bottom:0.75rem;">${isSender ? '📦' : '✈️'}</div>
         <p style="font-weight:600;color:#374151;margin-bottom:0.5rem;">
             ${isSender ? 'No shipments yet' : 'No deliveries yet'}
