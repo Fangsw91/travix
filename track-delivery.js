@@ -130,6 +130,15 @@ function updateUI(data) {
     // Status note (e.g. "Departed Dubai airport")
     updateStatusNote(data.status_note);
 
+    // Delivery Details — fill from the REAL shipment data returned by the API.
+    // This was previously missing entirely, so the page only ever showed its
+    // hardcoded placeholder values (iPhone 15 Pro, Paris, France, etc.) or
+    // whatever stale data happened to be sitting in localStorage from before.
+    fillDeliveryDetails(
+        { destination: data.destination, pickup: data.pickup_location, pickupDate: data.pickup_date, deliveryDate: data.delivery_date },
+        { itemName: data.item_name, weight: data.weight }
+    );
+
     // Show toast if status changed
     if (statusChanged) showStatusToast(data.status_label);
 
