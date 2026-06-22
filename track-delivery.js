@@ -414,7 +414,7 @@ function pulseLiveIndicator() {
 
 // ─── Load from localStorage cache ────────────────────────────────────────────
 function loadFromCache() {
-    const raw = localStorage.getItem('trackingData');
+    const raw = localStorage.getItem(`trackingData_${currentOrderId}`);
     if (!raw) return;
 
     try {
@@ -441,8 +441,9 @@ function loadFromCache() {
 }
 
 function cacheTracking(data) {
-    const existing = JSON.parse(localStorage.getItem('trackingData') || '{}');
-    localStorage.setItem('trackingData', JSON.stringify({ ...existing, ...data }));
+    const key = `trackingData_${currentOrderId}`;
+    const existing = JSON.parse(localStorage.getItem(key) || '{}');
+    localStorage.setItem(key, JSON.stringify({ ...existing, ...data }));
 }
 
 // ─── Fill delivery detail cards ───────────────────────────────────────────────
@@ -876,10 +877,14 @@ function renderEarnings(data) {
     // this from total_amount on the frontend (the fee % can change over time).
     const amount = parseFloat(data.traveler_amount);
     if (!amount || isNaN(amount)) {
-        earnEl.textContent = '—';
+        earnEl.textContent = 'Pending';
+        earnEl.style.fontSize = '1.1rem';
+        earnEl.style.color = '#9CA3AF';
         return;
     }
     earnEl.textContent = '$' + amount.toFixed(2);
+    earnEl.style.fontSize = '2rem';
+    earnEl.style.color = '#10B981';
 }
 
 function activateTravelerView(data) {

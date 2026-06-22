@@ -13,6 +13,23 @@
     <!-- Leaflet.js - Free map, no API key needed -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
+<script>
+    // Run BEFORE DOM paint — instantly apply the correct page title for this
+    // specific order, using the order-specific cache from a previous visit.
+    // Avoids the "title changes a moment after load" flash entirely.
+    (function() {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId   = urlParams.get('id') || localStorage.getItem('currentOrderId');
+            if (!orderId) return;
+
+            const cached = JSON.parse(localStorage.getItem(`trackingData_${orderId}`) || 'null');
+            if (cached && cached.is_traveler) {
+                document.documentElement.setAttribute('data-viewer', 'traveler');
+            }
+        } catch (e) {}
+    })();
+</script>
 <body>
     <!-- Navbar -->
     <nav class="navbar">
@@ -65,6 +82,16 @@
             <div class="track-header">
                 <div>
                     <h1 id="pageTitle">Track Your Delivery</h1>
+                    <script>
+                        // Inline, runs immediately as the parser reaches this point —
+                        // sets the correct title before paint, no flash on reload.
+                        (function() {
+                            const isTraveler = document.documentElement.getAttribute('data-viewer') === 'traveler';
+                            if (isTraveler) {
+                                document.getElementById('pageTitle').textContent = 'Your Active Delivery';
+                            }
+                        })();
+                    </script>
                     <p class="order-id">Order ID: <span id="orderId">TRX-2024-001234</span></p>
                 </div>
                 <div class="status-badge-header in-transit">In Transit</div>
