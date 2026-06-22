@@ -203,6 +203,25 @@ class ShipmentController extends Controller
             'occurred_at' => now(),
         ]);
 
+        // Create the matching transaction now that a traveler is assigned —
+        // without this, "Your Earnings" on the tracking page stays empty
+        // because it reads from Transaction.traveler_amount, not the shipment.
+        if (!Transaction::where('shipment_id', $shipment->id)->exists()) {
+            $platformFee    = round($shipment->total_amount * 0.15, 2);
+            $travelerAmount = round($shipment->total_amount - $platformFee, 2);
+
+            Transaction::create([
+                'shipment_id'     => $shipment->id,
+                'sender_id'       => $shipment->sender_id,
+                'traveler_id'     => $shipment->traveler_id,
+                'amount'          => $shipment->total_amount,
+                'platform_fee'    => $platformFee,
+                'traveler_amount' => $travelerAmount,
+                'status'          => 'escrow',
+                'paid_at'         => now(),
+            ]);
+        }
+
         return response()->json(['success' => true, 'message' => 'Shipment accepted']);
     }
 
@@ -375,7 +394,7 @@ class ShipmentController extends Controller
 
         \App\Models\ShipmentLocation::updateOrCreate(
             ['shipment_id' => $shipment->id],
-            ['lat' => $request->lat, 'lng' => $request->lng, 'updated_at' => now()]
+            ['lat' => $request->lat, 'lng' => $request->lng, 'recorded_at' => now(), 'updated_at' => now()]
         );
 
         return response()->json(['success' => true]);
