@@ -160,7 +160,7 @@ function getDeliveryDemoRequests() {
     return [
         {
             order_id: 'TRX-2026-DEMO1', item_name: 'iPhone 15 Pro Max',
-            category: 'Electronics', weight: 0.4, total_amount: '$25.08',
+            category: 'Electronics', weight: 0.4, total_amount: '$26.68',
             from: 'Jordan', to: 'Saudi Arabia', pickup_location: 'Jordan', destination: 'Saudi Arabia',
             pickup_date: addDeliveryDays(1),
             description: 'Brand new, sealed in original box. Handle with care.',

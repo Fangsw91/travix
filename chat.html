@@ -284,7 +284,11 @@
         try {
             const res  = await apiFetch(`/chat/${shipmentId}`);
             const data = await res.json();
-            if (!data.success) return;
+
+            if (!data.success) {
+                renderChatError(data.message || 'Could not load messages for this shipment.');
+                return;
+            }
 
             const msgs = data.messages;
             if (msgs.length === 0) {
@@ -295,7 +299,19 @@
             }
         } catch(e) {
             console.error('Chat load error:', e);
+            renderChatError('Could not connect to the server. Please check your connection and try again.');
         }
+    }
+
+    function renderChatError(message) {
+        const container = document.getElementById('chatMessages');
+        container.innerHTML = `
+            <div class="chat-empty">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.6">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/>
+                </svg>
+                <span style="color:#991B1B;">${escHtml(message)}</span>
+            </div>`;
     }
 
     // ── Poll for new messages ───────────────────────────────────────────────
@@ -416,9 +432,14 @@
                 container.appendChild(buildBubble(data.message));
                 lastMsgId = data.message.id;
                 scrollBottom();
+            } else {
+                input.value = body; // restore so the user doesn't lose what they typed
+                showChatNotice(data.message || 'Could not send message. Please try again.');
             }
         } catch(e) {
             console.error('Send error:', e);
+            input.value = body;
+            alert('Could not send message — please check your connection and try again.');
         } finally {
             btn.disabled = false;
             input.focus();
@@ -435,6 +456,20 @@
     function scrollBottom() {
         const c = document.getElementById('chatMessages');
         c.scrollTop = c.scrollHeight;
+    }
+
+    function showChatNotice(message) {
+        let notice = document.getElementById('chatNotice');
+        if (!notice) {
+            notice = document.createElement('div');
+            notice.id = 'chatNotice';
+            notice.style.cssText = 'background:#FEF2F2;color:#991B1B;padding:0.6rem 1rem;font-size:0.85rem;border-top:1px solid #FECACA;';
+            document.querySelector('.chat-input-bar')?.insertAdjacentElement('beforebegin', notice);
+        }
+        notice.textContent = message;
+        notice.style.display = 'block';
+        clearTimeout(window.__chatNoticeTimeout);
+        window.__chatNoticeTimeout = setTimeout(() => { notice.style.display = 'none'; }, 5000);
     }
 
     function escHtml(str) {

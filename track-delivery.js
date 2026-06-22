@@ -424,6 +424,16 @@ function loadFromCache() {
         const routeData    = JSON.parse(localStorage.getItem('requestedRoute')  || '{}');
         const sendItemData = JSON.parse(localStorage.getItem('sendItemData')     || '{}');
         fillDeliveryDetails(routeData, sendItemData);
+
+        // Apply traveler/sender view INSTANTLY from cache — avoids the delayed
+        // "page changes after a few seconds" switch that happens while waiting
+        // for the first live poll to come back.
+        if (data.is_traveler) {
+            activateTravelerView(data);
+        }
+        if (data.total_amount) {
+            renderEarnings(data);
+        }
     } catch (e) {}
 }
 
@@ -836,6 +846,22 @@ const STATUS_NEXT_LABEL = {
 };
 
 // ─── Activate traveler-specific UI ───────────────────────────────────────────
+// ─── Compute and render real traveler earnings from the shipment's total ──────
+// total_amount = base + (base × 15% platform fee), so base = total / 1.15
+function renderEarnings(data) {
+    const earnEl = document.getElementById('earningAmount');
+    if (!earnEl) return;
+
+    // Use the real traveler_amount saved at payment time — never re-derive
+    // this from total_amount on the frontend (the fee % can change over time).
+    const amount = parseFloat(data.traveler_amount);
+    if (!amount || isNaN(amount)) {
+        earnEl.textContent = '—';
+        return;
+    }
+    earnEl.textContent = '$' + amount.toFixed(2);
+}
+
 function activateTravelerView(data) {
     if (!travelerViewActive) {
         travelerViewActive = true;
@@ -851,11 +877,9 @@ function activateTravelerView(data) {
         hide('travelerInfoCard');
     }
 
-    // Earnings
-    const earnEl = document.getElementById('earningAmount');
-    if (earnEl && data.total_amount) {
-        earnEl.textContent = '$' + parseFloat(data.total_amount).toFixed(2);
-    }
+    // Earnings — traveler earns the BASE price; total_amount includes the
+    // 15% platform fee on top, so base = total / 1.15
+    renderEarnings(data);
 
     // Sender info
     if (data.sender) {
@@ -1120,7 +1144,9 @@ function setupTravelerControls(status, opts) {
     show('senderInfoCard');
     hide('travelerInfoCard');
 
-    setText('earningAmount', '$34.00');
+    // Demo shipment: 0.4kg iPhone ($1000 value) to Saudi Arabia
+    // weight_fee=$3.20 + value_fee=$20.00 → base=$23.20 (traveler keeps the full base)
+    renderEarnings({ traveler_amount: 23.20 });
     setText('senderName', 'Khaled Ammari');
     setText('senderAvatar', 'KA');
     setText('senderItemName', 'iPhone 15 Pro Max');
@@ -1343,6 +1369,19 @@ function shareMyLocation() {
     navigator.geolocation.getCurrentPosition(
         async (pos) => {
             const { latitude: lat, longitude: lng } = pos.coords;
+
+            // Demo mode — show success and update the map locally, skip the real API call
+            if (String(currentOrderId).includes('DEMO')) {
+                if (statusEl) {
+                    statusEl.innerHTML = `<span style="color:#10B981;font-weight:600;">✓ Location shared</span> · ${new Date().toLocaleTimeString()}`;
+                }
+                updateMapLocation(lat, lng, 'Your location (demo)', new Date().toISOString());
+                if (!locationShareInterval) {
+                    locationShareInterval = setInterval(shareMyLocation, 60000);
+                }
+                return;
+            }
+
             try {
                 await apiCall(`/shipments/${currentOrderId}/location`, {
                     method: 'POST',
@@ -1359,7 +1398,8 @@ function shareMyLocation() {
                     locationShareInterval = setInterval(shareMyLocation, 60000);
                 }
             } catch (e) {
-                if (statusEl) statusEl.textContent = 'Could not share location.';
+                console.warn('Location share failed:', e);
+                if (statusEl) statusEl.textContent = 'Could not share location: ' + (e.message || 'Make sure you are the assigned traveler for this order.');
             }
         },
         (err) => {
@@ -1389,13 +1429,14 @@ function showPickupPhotoCard(photoUrl) {
         <p style="font-size:0.85rem;color:#6B7280;margin-bottom:0.75rem;">
             Photo taken by the traveler at the time of collection.
         </p>
-        <a href="${photoUrl}" target="_blank" style="display:block;">
+        <a href="${photoUrl}" target="_blank" id="pickupPhotoLink" style="display:block;">
             <img src="${photoUrl}" alt="Pickup photo"
                 style="width:100%;max-height:280px;object-fit:cover;border-radius:12px;
                        box-shadow:0 4px 16px rgba(0,0,0,0.1);cursor:zoom-in;
                        transition:transform 0.2s;"
                 onmouseover="this.style.transform='scale(1.01)'"
-                onmouseout="this.style.transform=''">
+                onmouseout="this.style.transform=''"
+                onerror="this.closest('a').outerHTML='<div style=\'padding:2rem;text-align:center;background:#F9FAFB;border-radius:12px;color:#9CA3AF;font-size:0.85rem;\'>📷 Photo could not be loaded — it may have been moved or deleted from the server.</div>'">
         </a>
         <p style="font-size:0.75rem;color:#9CA3AF;margin-top:0.5rem;text-align:right;">
             Click to view full size

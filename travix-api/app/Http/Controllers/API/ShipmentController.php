@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Shipment;
 use App\Models\ShipmentEvent;
 use App\Models\Trip;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -108,6 +109,11 @@ class ShipmentController extends Controller
         $user       = $request->user();
         $isTraveler = $user && $shipment->traveler_id === $user->id;
 
+        // Real traveler earnings come from the transaction created at payment time —
+        // never recompute this from total_amount on the frontend, the platform fee
+        // percentage can change over time and would make old shipments show wrong numbers.
+        $transaction = Transaction::where('shipment_id', $shipment->id)->first();
+
         return response()->json([
             'success'       => true,
             'order_id'      => $shipment->order_id,
@@ -118,6 +124,7 @@ class ShipmentController extends Controller
             'item_name'     => $shipment->item_name,
             'weight'        => $shipment->weight,
             'total_amount'  => $shipment->total_amount,
+            'traveler_amount' => $transaction?->traveler_amount,
             'is_traveler'   => $isTraveler,
             'pickup_photo_url' => $shipment->pickup_photo
                 ? asset('storage/' . $shipment->pickup_photo)
@@ -235,6 +242,13 @@ class ShipmentController extends Controller
     {
         $request->validate(['lat' => 'required|numeric', 'lng' => 'required|numeric']);
         $shipment = Shipment::where('order_id', $orderId)->firstOrFail();
+
+        if ($shipment->traveler_id !== $request->user()->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only the assigned traveler can share location for this shipment.',
+            ], 403);
+        }
 
         \App\Models\ShipmentLocation::updateOrCreate(
             ['shipment_id' => $shipment->id],
