@@ -238,7 +238,7 @@ function shipmentCard(s, role) {
             <div style="font-size:0.78rem;color:#9CA3AF;margin-top:0.15rem;">${s.created_at}</div>
         </div>
         <div style="text-align:right;flex-shrink:0;margin-left:1rem;display:flex;flex-direction:column;align-items:flex-end;gap:0.3rem;">
-            <div style="font-weight:700;color:#D4AF37;font-size:0.95rem;">${s.total_amount}</div>
+            <div style="font-weight:700;color:#D4AF37;font-size:0.95rem;">${role === 'traveler' ? (s.traveler_amount || '—') : s.total_amount}</div>
             ${isActive ? `
             <div style="display:flex;gap:0.4rem;flex-wrap:wrap;justify-content:flex-end;">
                 <a href="track-delivery.html?id=${s.order_id}"

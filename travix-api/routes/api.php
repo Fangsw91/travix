@@ -98,9 +98,19 @@ Route::middleware('auth:sanctum')->group(function () {
         $accepted_trips    = (clone $travelerShipments)->whereIn('status', $activeStatuses)->count();
         $pending_requests  = \App\Models\Shipment::where('status', 'requested')->whereNull('traveler_id')->count();
         $active_deliveries = (clone $travelerShipments)->whereIn('status', ['picked_up','in_transit','out_for_delivery'])->count();
-        $total_earnings    = (clone $travelerShipments)->whereIn('status', $completedStatuses)->sum('total_amount');
-        $this_month        = (clone $travelerShipments)->whereIn('status', $completedStatuses)
-                                ->whereMonth('updated_at', now()->month)->sum('total_amount');
+
+        // IMPORTANT: earnings must come from the Transaction's traveler_amount
+        // (the traveler's actual cut after the platform fee), never from the
+        // shipment's total_amount (that's the full price the SENDER paid).
+        $total_earnings = \App\Models\Transaction::where('traveler_id', $uid)
+            ->where('status', '!=', 'failed')
+            ->sum('traveler_amount');
+
+        $this_month = \App\Models\Transaction::where('traveler_id', $uid)
+            ->where('status', '!=', 'failed')
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->sum('traveler_amount');
 
         return response()->json([
             'success' => true,
@@ -149,6 +159,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
         $shipments = $query->latest()->take(10)->get();
 
+        // Load traveler_amount per shipment from its transaction, if one exists
+        $shipmentIds  = $shipments->pluck('id');
+        $transactions = \App\Models\Transaction::whereIn('shipment_id', $shipmentIds)
+            ->get()
+            ->keyBy('shipment_id');
+
         $statusColors = [
             'requested'        => '#6B7280',
             'accepted'         => '#3B82F6',
@@ -161,16 +177,22 @@ Route::middleware('auth:sanctum')->group(function () {
 
         return response()->json([
             'success'   => true,
-            'shipments' => $shipments->map(fn($s) => [
-                'order_id'     => $s->order_id,
-                'item_name'    => $s->item_name,
-                'route'        => "{$s->pickup_location} → {$s->destination}",
-                'status'       => $s->status,
-                'status_label' => \App\Models\Shipment::$statusLabels[$s->status] ?? $s->status,
-                'status_color' => $statusColors[$s->status] ?? '#6B7280',
-                'total_amount' => '$' . number_format($s->total_amount, 2),
-                'created_at'   => $s->created_at->diffForHumans(),
-            ]),
+            'shipments' => $shipments->map(function ($s) use ($statusColors, $transactions) {
+                $txn = $transactions->get($s->id);
+                return [
+                    'id'              => $s->id,
+                    'order_id'        => $s->order_id,
+                    'item_name'       => $s->item_name,
+                    'route'           => "{$s->pickup_location} → {$s->destination}",
+                    'status'          => $s->status,
+                    'status_label'    => \App\Models\Shipment::$statusLabels[$s->status] ?? $s->status,
+                    'status_color'    => $statusColors[$s->status] ?? '#6B7280',
+                    'total_amount'    => '$' . number_format($s->total_amount, 2),
+                    // Traveler's real cut after the platform fee — NOT total_amount.
+                    'traveler_amount' => $txn ? '$' . number_format($txn->traveler_amount, 2) : null,
+                    'created_at'      => $s->created_at->diffForHumans(),
+                ];
+            }),
         ]);
     });
 
