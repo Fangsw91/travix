@@ -211,7 +211,7 @@ function getDeliveryDemoRequests() {
             from: 'Jordan', to: 'Saudi Arabia', pickup_location: 'Jordan', destination: 'Saudi Arabia',
             pickup_date: addDeliveryDays(1),
             description: 'Brand new, sealed in original box. Handle with care.',
-            sender: { id: 701, name: 'Khaled Ammari' },
+            sender: { id: 701, name: 'Omar Al-Rashid' },
             status: 'requested',
         },
         {

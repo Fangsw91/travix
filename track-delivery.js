@@ -1171,8 +1171,8 @@ function setupTravelerControls(status, opts) {
     // Demo shipment: 0.4kg iPhone ($1000 value) to Saudi Arabia
     // weight_fee=$3.20 + value_fee=$20.00 → base=$23.20 (traveler keeps the full base)
     renderEarnings({ traveler_amount: 23.20 });
-    setText('senderName', 'Khaled Ammari');
-    setText('senderAvatar', 'KA');
+    setText('senderName', 'Omar Al-Rashid');
+    setText('senderAvatar', 'OA');
     setText('senderItemName', 'iPhone 15 Pro Max');
 
     renderTravelerActionButton(status);

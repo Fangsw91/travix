@@ -87,7 +87,7 @@ function getDemoRequests() {
             from: 'Jordan', to: 'Saudi Arabia',
             pickup_date: addDays(1),
             description: 'Brand new, sealed in original box. Handle with care.',
-            sender: { id: 701, name: 'Khaled Ammari' },
+            sender: { id: 701, name: 'Omar Al-Rashid' },
         },
         {
             id: 8002, order_id: 'TRX-2026-DEMO2',
