@@ -10,9 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     currentOrderId  = urlParams.get('id') || localStorage.getItem('currentOrderId');
 
-    if (currentOrderId) {
-        document.getElementById('orderId').textContent = currentOrderId;
+    // No real order to track — show a demo shipment so the page is never empty
+    if (!currentOrderId) {
+        currentOrderId = 'TRX-2026-DEMO1';
+        loadDemoTracking();
+        bindButtons();
+        return;
     }
+
+    document.getElementById('orderId').textContent = currentOrderId;
 
     // Load from localStorage immediately (instant render)
     loadFromCache();
@@ -26,6 +32,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bindButtons();
 });
+
+// ─── Demo tracking data — shown when opening the page without a real order ────
+function loadDemoTracking() {
+    document.getElementById('orderId').textContent = currentOrderId;
+
+    const demoData = {
+        status: 'in_transit',
+        status_label: 'In Transit',
+        status_note: 'Departed Amman, heading to Riyadh',
+        timeline: [
+            { status: 'requested', title: 'Shipment Requested', description: 'Your shipment request has been created', time: '2026-06-21T09:00:00' },
+            { status: 'accepted',  title: 'Traveler Accepted',  description: 'Yousef Khalil will carry your item', time: '2026-06-21T11:30:00' },
+            { status: 'picked_up', title: 'Item Picked Up',     description: 'Traveler picked up the item with proof photo', time: '2026-06-22T08:00:00' },
+            { status: 'in_transit',title: 'In Transit',         description: 'Departed Amman, heading to Riyadh', time: '2026-06-22T14:00:00' },
+        ],
+        traveler: { name: 'Yousef Khalil', rating: 4.9 },
+        pickup_photo_url: null,
+    };
+
+    updateStatusBadge(demoData.status, demoData.status_label);
+    renderTimeline(demoData.timeline);
+    updateTravelerCard(demoData.traveler);
+    updateStatusNote(demoData.status_note);
+
+    fillDeliveryDetails(
+        { from: 'Jordan', to: 'Saudi Arabia' },
+        { itemName: 'iPhone 15 Pro Max', weight: '0.4', category: 'Electronics' }
+    );
+}
 
 // Stop polling when tab hidden (saves battery/requests)
 document.addEventListener('visibilitychange', () => {
@@ -422,6 +457,13 @@ const travelerIcon = () => L.divIcon({
 // ─── Initialize map ───────────────────────────────────────────────────────────
 function initMap(lat, lng) {
     if (mapInitialized) return;
+
+    if (typeof L === 'undefined') {
+        console.warn('Leaflet not loaded yet — retrying in 1s');
+        setTimeout(() => initMap(lat, lng), 1000);
+        return;
+    }
+
     mapInitialized = true;
 
     map = L.map('liveMap', {
@@ -572,6 +614,13 @@ function updateMapStatus(address, updatedAt, isLive) {
 // ─── Show "no location yet" placeholder on map ────────────────────────────────
 function showMapPlaceholder() {
     if (mapInitialized) return;
+
+    // Leaflet may not have finished loading from CDN yet — don't crash the page
+    if (typeof L === 'undefined') {
+        console.warn('Leaflet not loaded yet — retrying in 1s');
+        setTimeout(showMapPlaceholder, 1000);
+        return;
+    }
 
     // Show static world map centered on Middle East while waiting
     map = L.map('liveMap', { zoomControl: true }).setView([31.9, 35.9], 5);

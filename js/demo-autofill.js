@@ -6,7 +6,13 @@
  */
 
 document.addEventListener('DOMContentLoaded', function () {
-    waitForDropdownsThenFill();
+    // Pages without country dropdowns (e.g. signup) don't need to wait at all
+    const needsDropdowns = document.getElementById('sendItemForm') || document.getElementById('travelerForm');
+    if (needsDropdowns) {
+        waitForDropdownsThenFill();
+    } else {
+        runAutoFill();
+    }
 });
 
 function waitForDropdownsThenFill() {
@@ -29,6 +35,22 @@ function runAutoFill() {
         !!(window.cdInstances && Object.keys(window.cdInstances).length));
     if (document.getElementById('sendItemForm')) { console.log('[demo-autofill] filling Send Item form'); fillSendItemDemo(); }
     if (document.getElementById('travelerForm')) { console.log('[demo-autofill] filling Traveler form'); fillTravelerDemo(); }
+    if (document.getElementById('signupForm'))   { console.log('[demo-autofill] filling Signup form');   fillSignupDemo(); }
+}
+
+// ── Sign Up ──────────────────────────────────────────────────────────────────
+function fillSignupDemo() {
+    const uniqueId = Date.now().toString().slice(-6);
+
+    setVal('name', 'Khaled Ammari');
+    setVal('email', `khaled.demo${uniqueId}@travix.com`);
+    setVal('phone', '+962 79 555 ' + uniqueId.slice(-4));
+    setVal('password', 'demo1234');
+    setVal('confirmPassword', 'demo1234');
+    setChecked('terms', true);
+
+    // Default role selection — Sender (matches the role-toggle buttons on the page)
+    if (typeof selectRole === 'function') selectRole('sender');
 }
 
 // ── Send an Item ────────────────────────────────────────────────────────────

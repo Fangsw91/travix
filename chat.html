@@ -237,6 +237,7 @@
     const params     = new URLSearchParams(location.search);
     const shipmentId = params.get('shipment');   // numeric DB id
     const orderId    = params.get('order');      // TRX-xxxx (for display)
+    const isDemo     = !shipmentId;
 
     let currentUser  = null;
     let lastMsgId    = 0;
@@ -245,18 +246,37 @@
     // ── Init ────────────────────────────────────────────────────────────────
     async function init() {
         const token = localStorage.getItem('auth_token');
-        if (!token || !shipmentId) {
-            alert('Invalid chat link');
-            history.back();
+        if (!token) {
+            window.location.href = 'signin.html';
             return;
         }
         try {
             currentUser = JSON.parse(localStorage.getItem('user'));
         } catch(e) {}
 
+        if (isDemo) {
+            document.getElementById('chatOrderId').textContent = 'TRX-2026-DEMO1';
+            document.getElementById('chatOtherName').textContent = 'Yousef Khalil';
+            document.getElementById('chatShipmentRoute').textContent = 'Jordan → Saudi Arabia';
+            document.getElementById('chatStatus').textContent = 'In Transit';
+            renderDemoMessages();
+            return;
+        }
+
         document.getElementById('chatOrderId').textContent = orderId || '—';
         await loadMessages();
         pollTimer = setInterval(pollNewMessages, 3000);
+    }
+
+    // ── Demo conversation — shown when opened without a real shipment ────────
+    function renderDemoMessages() {
+        const demoMsgs = [
+            { id: 1, body: 'Hi! I just picked up your iPhone, heading to the airport now.', sender_name: 'Yousef Khalil', is_mine: false, time: '09:14', date: 'Today' },
+            { id: 2, body: 'Great, thank you! Please keep it safe 🙏', sender_name: currentUser?.name || 'You', is_mine: true, time: '09:16', date: 'Today' },
+            { id: 3, body: 'Of course! I will send updates once I land in Riyadh.', sender_name: 'Yousef Khalil', is_mine: false, time: '09:17', date: 'Today' },
+        ];
+        renderMessages(demoMsgs);
+        lastMsgId = 3;
     }
 
     // ── Load all messages ───────────────────────────────────────────────────
@@ -362,6 +382,30 @@
         btn.disabled = true;
         input.value  = '';
 
+        // Demo mode — simulate sending + a quick reply, no real API call
+        if (isDemo) {
+            const container = document.getElementById('chatMessages');
+            lastMsgId++;
+            container.appendChild(buildBubble({
+                id: lastMsgId, body, sender_name: currentUser?.name || 'You',
+                is_mine: true, time: nowTime(),
+            }));
+            scrollBottom();
+
+            setTimeout(() => {
+                lastMsgId++;
+                container.appendChild(buildBubble({
+                    id: lastMsgId, body: 'Got it 👍', sender_name: 'Yousef Khalil',
+                    is_mine: false, time: nowTime(),
+                }));
+                scrollBottom();
+            }, 1200);
+
+            btn.disabled = false;
+            input.focus();
+            return;
+        }
+
         try {
             const res  = await apiFetch(`/chat/${shipmentId}`, 'POST', { body });
             const data = await res.json();
@@ -397,6 +441,11 @@
         return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    function nowTime() {
+        const d = new Date();
+        return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    }
+
     // ── API fetch helper ─────────────────────────────────────────────────────
     async function apiFetch(path, method='GET', body=null) {
         const token = localStorage.getItem('auth_token');
@@ -414,6 +463,7 @@
 
     // Pause on tab hide
     document.addEventListener('visibilitychange', () => {
+        if (isDemo) return; // no polling needed in demo mode
         if (document.hidden) {
             clearInterval(pollTimer);
         } else {

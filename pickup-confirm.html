@@ -215,14 +215,21 @@
     <script src="js/api-config.js"></script>
     <script>
     const params  = new URLSearchParams(location.search);
-    const orderId = params.get('order');
+    const orderId = params.get('order') || 'TRX-2026-DEMO1';
+    const isDemo  = !params.get('order');
     let selectedFile = null;
 
     document.addEventListener('DOMContentLoaded', () => {
         const token = localStorage.getItem('auth_token');
-        if (!token || !orderId) { alert('Invalid link'); history.back(); return; }
+        if (!token) { alert('Please sign in first'); window.location.href = 'signin.html'; return; }
+
         document.getElementById('displayOrderId').textContent = orderId;
-        loadShipmentInfo();
+
+        if (isDemo) {
+            document.getElementById('displayItem').textContent = 'iPhone 15 Pro Max (Demo)';
+        } else {
+            loadShipmentInfo();
+        }
     });
 
     async function loadShipmentInfo() {
@@ -270,6 +277,16 @@
         const btn = document.getElementById('confirmBtn');
         btn.disabled = true;
         btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite;margin-right:8px;"></span>Uploading...';
+
+        // Demo order — skip the real API call, just show the success state
+        if (isDemo) {
+            setTimeout(() => {
+                document.getElementById('pickupForm').style.display = 'none';
+                document.getElementById('successOverlay').classList.add('visible');
+                setTimeout(() => window.location.href = 'user-dashboard.html', 3500);
+            }, 800);
+            return;
+        }
 
         const formData = new FormData();
         formData.append('photo', selectedFile);
