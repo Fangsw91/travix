@@ -172,11 +172,17 @@ async function loadStats() {
         if (val != null) animateValue(valEl, val);
     });
 
-    // Profile stats row
-    const pStats = document.querySelectorAll('.user-stat strong');
-    if (pStats[0]) animateValue(pStats[0], s.completed || 0);
-    if (pStats[1]) animateValue(pStats[1], s.active_requests || s.accepted_trips || 0);
-    if (pStats[2]) animateValue(pStats[2], '$' + (s.total_spent || s.total_earnings || 0).toFixed(2));
+    // Profile stats row — use explicit IDs, not index-based selection (which
+    // breaks once any .user-stat block is hidden via CSS but stays in the DOM).
+    const isTravelerRole = (getUser()?.role === 'traveler');
+
+    const deliveriesEl = document.getElementById('statDeliveries');
+    const earnedEl      = document.getElementById('statEarned');
+    const earnedLabel   = document.getElementById('statEarnedLabel');
+
+    if (deliveriesEl) animateValue(deliveriesEl, isTravelerRole ? (s.accepted_trips || 0) : (s.completed || 0));
+    if (earnedEl)     animateValue(earnedEl, '$' + (isTravelerRole ? (s.total_earnings || 0) : (s.total_spent || 0)).toFixed(2));
+    if (earnedLabel)  earnedLabel.textContent = isTravelerRole ? 'Earned' : 'Spent';
 }
 
 // ─── Shipments list ───────────────────────────────────────────────────────────

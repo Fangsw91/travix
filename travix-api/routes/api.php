@@ -129,7 +129,21 @@ Route::middleware('auth:sanctum')->group(function () {
 
         $completed  = \App\Models\Shipment::where('sender_id', $uid)->where('status','delivered')->count();
         $sent       = \App\Models\Shipment::where('sender_id', $uid)->count();
-        $earned     = \App\Models\Shipment::where('traveler_id', $uid)->where('status','delivered')->sum('total_amount');
+        $deliveries = \App\Models\Shipment::where('traveler_id', $uid)->where('status','delivered')->count();
+
+        // IMPORTANT: a traveler's earnings come from their actual cut (traveler_amount
+        // on the Transaction), never from total_amount (the full price the SENDER paid).
+        $earned = \App\Models\Transaction::where('traveler_id', $uid)
+            ->where('status', '!=', 'failed')
+            ->sum('traveler_amount');
+
+        // What a sender has actually spent (their own perspective — different
+        // number from what a traveler earns, even on the same shipment).
+        $spent = \App\Models\Shipment::where('sender_id', $uid)
+            ->where('status', 'delivered')
+            ->sum('total_amount');
+
+        $isTraveler = $user->role === 'traveler';
 
         return response()->json([
             'success' => true,
@@ -142,9 +156,11 @@ Route::middleware('auth:sanctum')->group(function () {
                 'avatar'  => $user->avatar ?? null,
             ],
             'stats' => [
-                'total_deliveries' => $completed,
+                // "Total Deliveries" means different things per role: completed
+                // deliveries made (traveler) vs completed shipments sent (sender).
+                'total_deliveries' => $isTraveler ? $deliveries : $completed,
                 'items_sent'       => $sent,
-                'earned'           => '$' . number_format($earned, 2),
+                'earned'           => '$' . number_format($isTraveler ? $earned : $spent, 2),
             ],
         ]);
     });
