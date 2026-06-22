@@ -360,6 +360,14 @@ async function acceptRequest(orderId, itemName, weight, reward) {
 
 async function confirmAccept(itemName) {
     if (!pendingOrderId) return;
+
+    // Demo data isn't a real shipment in the database — show a clear message instead of an error
+    if (String(pendingOrderId).includes('DEMO')) {
+        document.getElementById('acceptModal')?.remove();
+        showToast(`This is sample data for demo purposes — "${itemName}" isn't a real shipment yet.`, 'info');
+        return;
+    }
+
     try {
         await apiCall(`/shipments/${pendingOrderId}/accept`, { method: 'POST' });
         document.getElementById('acceptModal')?.remove();

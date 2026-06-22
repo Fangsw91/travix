@@ -77,6 +77,14 @@ function confirmAcceptance(itemName) {
         showError('Could not accept shipment. Please try again.');
         return;
     }
+
+    // Demo data isn't backed by a real shipment in the database — show a clear message instead of an error
+    if (String(pendingAcceptShipmentId).includes('DEMO')) {
+        showInfo(`This is sample data for demo purposes — "${itemName}" isn't a real shipment yet. Once real sender requests come in, Accept will work normally.`);
+        pendingAcceptShipmentId = null;
+        return;
+    }
+
     ShipmentAPI.accept(pendingAcceptShipmentId).then(() => {
         showSuccess(`You accepted the delivery for "${itemName}"! Check your dashboard.`);
         pendingAcceptShipmentId = null;
@@ -109,7 +117,8 @@ if (searchInput) {
 
 function renderRequestCard(shipment) {
     const sender  = shipment.sender || {};
-    const reward  = (parseFloat(shipment.total_amount || shipment.price || 0) * 0.85).toFixed(2);
+    const rawAmount = String(shipment.total_amount || shipment.price || 0).replace('$', '');
+    const reward    = (parseFloat(rawAmount) * 0.85).toFixed(2);
     const date    = shipment.pickup_date ? new Date(shipment.pickup_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
     const isAccepted = shipment.status && shipment.status !== 'requested';
 
