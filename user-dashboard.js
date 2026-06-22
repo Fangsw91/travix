@@ -116,7 +116,23 @@ async function loadStats() {
     try {
         const data = await apiCall('/dashboard/stats');
         if (!data.success) return;
-        const s = data.stats;
+        const s = { ...data.stats };
+
+        // Fold in demo shipments (accepted via the demo flow, not in the real DB)
+        // so the stat cards reflect them too, instead of only real backend data.
+        const demoShipments = getCachedShipments('traveler').filter(isDemoShipment);
+        if (demoShipments.length) {
+            const activeStatuses = ['accepted', 'picked_up', 'in_transit', 'out_for_delivery'];
+            const demoAccepted   = demoShipments.filter(d => activeStatuses.includes(d.status)).length;
+            const demoActive     = demoShipments.filter(d => ['picked_up','in_transit','out_for_delivery'].includes(d.status)).length;
+            const demoDelivered  = demoShipments.filter(d => d.status === 'delivered');
+            const demoEarnings   = demoDelivered.reduce((sum, d) => sum + parseFloat(String(d.traveler_amount || '0').replace('$','')), 0);
+
+            s.accepted_trips    = (s.accepted_trips    || 0) + demoAccepted;
+            s.active_deliveries = (s.active_deliveries || 0) + demoActive;
+            s.total_earnings    = (s.total_earnings     || 0) + demoEarnings;
+            s.this_month        = (s.this_month         || 0) + demoEarnings;
+        }
 
         // Update each stat card by label
         document.querySelectorAll('.stat-card-small').forEach(card => {
@@ -164,16 +180,23 @@ async function loadShipments(role) {
         const data = await apiCall(`/dashboard/shipments?role=${role}`);
         if (!data.success) return;
 
-        // Cache for instant render on next page load
-        localStorage.setItem(`cachedShipments_${role}`, JSON.stringify(data.shipments));
+        // Demo shipments (created locally via the demo Accept flow) aren't in the
+        // real database, so the API will never return them — keep them around by
+        // merging with whatever's already cached instead of overwriting.
+        const previouslyCached = getCachedShipments(role);
+        const demoOnes = previouslyCached.filter(s => isDemoShipment(s));
+        const merged   = [...demoOnes, ...data.shipments];
 
-        if (!data.shipments.length) {
+        // Cache for instant render on next page load
+        localStorage.setItem(`cachedShipments_${role}`, JSON.stringify(merged));
+
+        if (!merged.length) {
             listEl.innerHTML = emptyState(role);
             return;
         }
 
         // Update silently — no flash
-        listEl.innerHTML = data.shipments.map(s => shipmentCard(s, role)).join('');
+        listEl.innerHTML = merged.map(s => shipmentCard(s, role)).join('');
 
     } catch (e) {
         console.warn('Shipments error:', e.message);
@@ -182,6 +205,15 @@ async function loadShipments(role) {
         }
         listEl.style.opacity = '1';
     }
+}
+
+function isDemoShipment(s) {
+    return String(s.id).startsWith('demo-') || String(s.order_id || '').includes('DEMO');
+}
+
+function getCachedShipments(role) {
+    try { return JSON.parse(localStorage.getItem(`cachedShipments_${role}`) || '[]'); }
+    catch(e) { return []; }
 }
 
 // ─── Skeleton loading cards ───────────────────────────────────────────────────
