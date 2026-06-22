@@ -452,6 +452,10 @@ async function loadVerificationStatus() {
 
 function applyVerifStatus(data) {
     const status = data.verification_status || 'unverified';
+
+    // Keep the instant-paint attribute in sync with the real status
+    document.documentElement.setAttribute('data-verif', status);
+
     const badge  = document.getElementById('verifBadge');
     const upload = document.getElementById('verifUploadArea');
     const pending  = document.getElementById('verifPendingArea');

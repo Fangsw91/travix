@@ -32,6 +32,11 @@
 
                 const role = (user && user.role === 'traveler') ? 'traveler' : 'sender';
                 document.documentElement.setAttribute('data-role', role);
+
+                // Same trick for verification status — avoids the "Unverified" flash
+                // before the real status loads from the API.
+                const verifStatus = (user && user.verification_status) || 'unverified';
+                document.documentElement.setAttribute('data-verif', verifStatus);
             } catch(e) {}
         })();
     </script>
@@ -40,6 +45,17 @@
         html[data-role="traveler"] #traveler-view { display: block !important; }
         html[data-role="sender"]   #tabSender     { display: none; }
         html[data-role="traveler"] #tabTraveler   { display: none; }
+
+        /* ── Verification status — set instantly from cached value, no flash ── */
+        /* Default state matches "unverified": upload area visible, badge says Unverified */
+        html[data-verif="approved"] #verifUploadArea       { display: none !important; }
+        html[data-verif="approved"] #verifPendingArea       { display: none !important; }
+        html[data-verif="approved"] #verifApprovedArea      { display: block !important; }
+        html[data-verif="approved"] #profileVerifiedBadge   { display: inline-flex !important; }
+
+        html[data-verif="pending"] #verifUploadArea         { display: none !important; }
+        html[data-verif="pending"] #verifPendingArea         { display: block !important; }
+        html[data-verif="pending"] #verifApprovedArea        { display: none !important; }
     </style>
     <style>
         /* ── ID Verification Card ── */
@@ -197,7 +213,20 @@
                         <h3 class="verif-title" id="verifTitle">Identity Verification</h3>
                         <p class="verif-sub" id="verifSub">Required before placing or accepting orders</p>
                     </div>
-                    <span class="verif-badge" id="verifBadge">Unverified</span>
+                    <span class="verif-badge" id="verifBadge"></span>
+                    <script>
+                        // Inline, runs immediately as the parser reaches this point —
+                        // no flash of "Unverified" before this executes.
+                        (function() {
+                            const status = document.documentElement.getAttribute('data-verif') || 'unverified';
+                            const labels = { unverified:'Unverified', pending:'Under Review', approved:'Verified ✓', rejected:'Rejected' };
+                            const badge  = document.getElementById('verifBadge');
+                            if (badge) {
+                                badge.textContent = labels[status] || status;
+                                badge.className   = 'verif-badge ' + status;
+                            }
+                        })();
+                    </script>
                 </div>
 
                 <!-- Upload area — hidden when approved/pending -->
