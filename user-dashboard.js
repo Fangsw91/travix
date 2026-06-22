@@ -588,11 +588,23 @@ async function submitVerification() {
 
 // ── Demo: instantly mark the account as verified (approved) ───────────────────
 async function autoApproveVerification() {
-    // Try to sync with backend silently — but proceed regardless (demo-safe)
+    let serverConfirmed = false;
+
     try {
-        await apiCall('/verification/approve-self', { method: 'POST' });
+        const data = await apiCall('/verification/approve-self', { method: 'POST' });
+        serverConfirmed = !!(data && data.success && data.verification_status === 'approved');
     } catch(e) {
-        console.warn('Auto-approve API unreachable — using local state for demo.', e);
+        console.warn('Auto-approve API call failed:', e);
+    }
+
+    if (!serverConfirmed) {
+        // Backend didn't confirm — don't fake "verified" locally, the status would
+        // just snap back to unverified next time the page checks the server.
+        showVerifToast('Could not reach the server to confirm verification. Please check your connection and try again.', 'error');
+        // Re-check the real status from the server in case it actually succeeded
+        // but the response was lost, so we don't leave the UI stuck on "pending".
+        loadVerificationStatus();
+        return;
     }
 
     applyVerifStatus({ verification_status: 'approved' });
