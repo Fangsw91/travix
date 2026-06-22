@@ -177,6 +177,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ─── Payment Success ──────────────────────────────────────────────────────────
 async function handlePaymentSuccess(paymentMethodId) {
+    // A payment must always be tied to a real, logged-in account — otherwise
+    // the shipment can never be saved to the database, and the tracking page
+    // will show "Order Not Found" forever. Block here instead of faking an ID.
+    const tokenCheck = localStorage.getItem('auth_token');
+    if (!tokenCheck) {
+        setPayBtnLoading(false);
+        document.getElementById('card-errors').textContent =
+            'Please sign in before completing payment — your order needs an account to be tracked.';
+        setTimeout(() => {
+            localStorage.setItem('redirectAfterLogin', window.location.href);
+            window.location.href = 'signin.html';
+        }, 2000);
+        return;
+    }
+
     const sendItemData = JSON.parse(localStorage.getItem('sendItemData')     || '{}');
     const routeData    = JSON.parse(localStorage.getItem('requestedRoute')   || '{}');
     const travelerData = JSON.parse(localStorage.getItem('selectedTraveler') || '{}');
@@ -224,9 +239,13 @@ async function handlePaymentSuccess(paymentMethodId) {
         }
     }
 
-    // ── If not logged in, generate a local-only ID (guest demo) ───────────────
+    // finalOrderId is always set by the API call above now that we require
+    // a logged-in user before reaching this point — no fallback needed.
     if (!finalOrderId) {
-        finalOrderId = 'TRX-' + new Date().getFullYear() + '-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+        setPayBtnLoading(false);
+        document.getElementById('card-errors').textContent =
+            'Payment processed but the order could not be confirmed. Please contact support with your payment reference.';
+        return;
     }
 
     // Determine initial status: if a traveler was pre-selected, start as 'accepted'
