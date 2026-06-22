@@ -144,9 +144,9 @@ function calculate() {
 
     // Base = weight fee + value fee
     const base        = Math.max(weightFee + valueFee, 5); // minimum $5
-    const platformFee = base * 0.15;
-    const total       = base + platformFee;           // sender pays
-    const travelerEarnings = base * 0.85;             // traveler earns
+    const platformFee = base * 0.15 * 2;              // platform fee doubled (30% of base)
+    const total       = base + platformFee;            // sender pays base + doubled platform fee
+    const travelerEarnings = base * 0.85;              // traveler earnings unchanged (85% of base)
 
     // DHL comparison: $45/kg + 5% of item value
     const dhlCost  = (weight * 45) + (itemValue * 0.05);
@@ -198,7 +198,7 @@ function calculate() {
         rateBox.style.display = selectedCountry ? 'flex' : 'none';
         if (selectedCountry) {
             rateBox.innerHTML = `
-                <span>${selectedCountry.flag} <strong>${selectedCountry.name}</strong></span>
+                <span>${flagImg(selectedCountry.code, 18)} <strong>${selectedCountry.name}</strong></span>
                 <span>Base rate: <strong style="color:#D4AF37">$${selectedCountry.rate}/kg</strong>
                 ${itemValue > 0 ? ` &nbsp;|&nbsp; Value fee: <strong style="color:#D4AF37">${(valueFeeRate*100)}%</strong>` : ''}</span>`;
         }
