@@ -575,10 +575,52 @@ async function submitVerification() {
         const badge = document.getElementById('verifBadge');
         if (badge) { badge.textContent = 'Under Review'; badge.className = 'verif-badge pending'; }
         showVerificationSubmittedModal();
+
+        // Demo: simulate the review completing after 4 seconds
+        setTimeout(() => {
+            autoApproveVerification();
+        }, 4000);
     } else {
         if (btn) { btn.disabled = false; btn.textContent = 'Submit for Verification'; }
         showVerifToast('Submission failed. Please try again.', 'error');
     }
+}
+
+// ── Demo: instantly mark the account as verified (approved) ───────────────────
+async function autoApproveVerification() {
+    // Try to sync with backend silently — but proceed regardless (demo-safe)
+    try {
+        await apiCall('/verification/approve-self', { method: 'POST' });
+    } catch(e) {
+        console.warn('Auto-approve API unreachable — using local state for demo.', e);
+    }
+
+    applyVerifStatus({ verification_status: 'approved' });
+
+    // Update cached user object so other pages see the verified status too
+    try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        user.verification_status = 'approved';
+        localStorage.setItem('user', JSON.stringify(user));
+    } catch(e) {}
+
+    showVerifiedToast();
+}
+
+function showVerifiedToast() {
+    const t = document.createElement('div');
+    t.style.cssText = `position:fixed;bottom:1.5rem;right:1.5rem;padding:1rem 1.4rem;
+        border-radius:12px;font-weight:600;font-size:0.92rem;z-index:9999;max-width:340px;
+        background:#10B981;color:#fff;display:flex;align-items:center;gap:0.6rem;
+        box-shadow:0 6px 24px rgba(0,0,0,0.18);animation:slideUp 0.3s ease;`;
+    t.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
+            <circle cx="12" cy="12" r="9.5" stroke="white" stroke-width="1.8"/>
+            <path d="M7.5 12.5l2.8 2.8L16.5 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Your identity has been verified! You can now send and carry items.</span>`;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 5000);
 }
 
 function showVerificationSubmittedModal() {

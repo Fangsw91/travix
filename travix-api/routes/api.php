@@ -61,6 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/status',       [VerificationController::class, 'status']);
         Route::post('/upload',      [VerificationController::class, 'upload']);
         Route::post('/submit',      [VerificationController::class, 'submit']);
+        Route::post('/approve-self',[VerificationController::class, 'approveSelf']);
     });
 
     // Chat

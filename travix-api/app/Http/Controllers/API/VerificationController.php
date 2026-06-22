@@ -76,4 +76,21 @@ class VerificationController extends Controller
             'message' => 'Verification submitted. We\'ll review within 24 hours.',
         ]);
     }
+
+    // POST /api/verification/approve-self — DEMO ONLY
+    // Simulates instant approval 4 seconds after submission, so the demo
+    // flow doesn't require waiting for a real admin review.
+    public function approveSelf(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->verification_status === 'pending' || $user->verification_status === 'unverified') {
+            $user->update(['verification_status' => 'approved']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'verification_status' => $user->verification_status,
+        ]);
+    }
 }
