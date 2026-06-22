@@ -83,6 +83,21 @@ class TripController extends Controller
             'notes'              => 'nullable|string',
         ]);
 
+        // Guard against duplicate trips — same traveler posting the exact same
+        // route + departure date within the last minute almost always means a
+        // double-click / accidental resubmit, not two genuinely separate trips.
+        $existing = Trip::where('traveler_id', $request->user()->id)
+            ->where('from_location', $validated['from_location'])
+            ->where('to_location', $validated['to_location'])
+            ->where('departure_date', $validated['departure_date'])
+            ->where('status', 'active')
+            ->where('created_at', '>=', now()->subMinute())
+            ->first();
+
+        if ($existing) {
+            return response()->json(['success' => true, 'trip' => $existing], 200);
+        }
+
         $trip = Trip::create(array_merge($validated, [
             'traveler_id' => $request->user()->id,
             'status'      => 'active',

@@ -94,9 +94,13 @@ setupUploadArea(ticketUpload, travelTicket);
 const travelerForm = document.getElementById('travelerForm');
 
 if (travelerForm) {
+    let isSubmittingTrip = false; // hard guard against double-submit / double-click
+
     travelerForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        
+
+        if (isSubmittingTrip) return; // already in flight — ignore extra clicks
+
         // Check if at least one item type is selected
         const selectedItems = document.querySelectorAll('input[name="itemTypes"]:checked');
         if (selectedItems.length === 0) {
@@ -130,6 +134,7 @@ if (travelerForm) {
         }
 
         // Show loading state
+        isSubmittingTrip = true;
         const submitBtn = travelerForm.querySelector('.btn-submit');
         const originalText = submitBtn.textContent;
         submitBtn.textContent = 'Posting...';
@@ -149,11 +154,13 @@ if (travelerForm) {
             accepted_categories: formData.itemTypes,
             notes: formData.additionalNotes
         }).then(data => {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
             showSuccess('Trip posted successfully! You will be notified when senders match your route.');
+            // Keep the button disabled until redirect — no need to re-enable
+            // since we're navigating away anyway, and this prevents any
+            // chance of a second submit during the 2s redirect delay.
             setTimeout(() => { window.location.href = 'user-dashboard.html'; }, 2000);
         }).catch(err => {
+            isSubmittingTrip = false;
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
             const firstError = err.errors ? Object.values(err.errors)[0]?.[0] : null;
