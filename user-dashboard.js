@@ -114,40 +114,12 @@ async function refreshAll() {
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 async function loadStats() {
-    // Fetch real stats — but don't let a failed/unreachable backend stop us
-    // from showing demo-derived stats below.
     let s = {};
     try {
         const data = await apiCall('/dashboard/stats');
         if (data.success) s = { ...data.stats };
     } catch (e) {
         console.warn('Stats error:', e.message);
-    }
-
-    // Fold in demo shipments (accepted via the demo flow, not in the real DB)
-    // so the stat cards reflect them too — this runs regardless of whether the
-    // real API call above succeeded or failed.
-    const demoShipments = getCachedShipments('traveler').filter(isDemoShipment);
-    if (demoShipments.length) {
-        const activeStatuses = ['accepted', 'picked_up', 'in_transit', 'out_for_delivery'];
-        const demoAccepted   = demoShipments.filter(d => activeStatuses.includes(d.status)).length;
-        const demoActive     = demoShipments.filter(d => ['picked_up','in_transit','out_for_delivery'].includes(d.status)).length;
-        const demoDelivered  = demoShipments.filter(d => d.status === 'delivered');
-        const demoEarnings   = demoDelivered.reduce((sum, d) => sum + parseFloat(String(d.traveler_amount || '0').replace('$','')), 0);
-
-        s.accepted_trips    = (s.accepted_trips    || 0) + demoAccepted;
-        s.active_deliveries = (s.active_deliveries || 0) + demoActive;
-        s.total_earnings    = (s.total_earnings     || 0) + demoEarnings;
-        s.this_month        = (s.this_month         || 0) + demoEarnings;
-    }
-
-    // Same for sender-side demo shipments
-    const demoSenderShipments = getCachedShipments('sender').filter(isDemoShipment);
-    if (demoSenderShipments.length) {
-        const activeStatuses = ['requested', 'accepted', 'picked_up', 'in_transit', 'out_for_delivery'];
-        s.active_requests = (s.active_requests || 0) + demoSenderShipments.filter(d => activeStatuses.includes(d.status)).length;
-        s.pending          = (s.pending || 0) + demoSenderShipments.filter(d => d.status === 'requested').length;
-        s.completed         = (s.completed || 0) + demoSenderShipments.filter(d => d.status === 'delivered').length;
     }
 
     // Update each stat card by label
@@ -200,23 +172,19 @@ async function loadShipments(role) {
         const data = await apiCall(`/dashboard/shipments?role=${role}`);
         if (!data.success) return;
 
-        // Demo shipments (created locally via the demo Accept flow) aren't in the
-        // real database, so the API will never return them — keep them around by
-        // merging with whatever's already cached instead of overwriting.
-        const previouslyCached = getCachedShipments(role);
-        const demoOnes = previouslyCached.filter(s => isDemoShipment(s));
-        const merged   = [...demoOnes, ...data.shipments];
+        // The backend is now the single source of truth for every shipment —
+        // including ones originally created via the demo Accept flow, since
+        // accept-demo persists a real Shipment + Transaction. Caching is only
+        // used for instant render on next load, never merged with stale data.
+        localStorage.setItem(`cachedShipments_${role}`, JSON.stringify(data.shipments));
 
-        // Cache for instant render on next page load
-        localStorage.setItem(`cachedShipments_${role}`, JSON.stringify(merged));
-
-        if (!merged.length) {
+        if (!data.shipments.length) {
             listEl.innerHTML = emptyState(role);
             return;
         }
 
         // Update silently — no flash
-        listEl.innerHTML = merged.map(s => shipmentCard(s, role)).join('');
+        listEl.innerHTML = data.shipments.map(s => shipmentCard(s, role)).join('');
 
     } catch (e) {
         console.warn('Shipments error:', e.message);
