@@ -180,7 +180,7 @@ function calculate() {
     if (hasData) {
         infoLines.push(`${weight}kg × $${rate}/kg = $${weightFee.toFixed(2)}`);
         if (itemValue > 0) infoLines.push(`Value fee: $${valueFee.toFixed(2)}`);
-        infoLines.push(`+ 15% platform fee`);
+        infoLines.push(`+ 30% platform fee`);
     }
     setEl('senderInfo', infoLines.length ? infoLines.join(' · ') : 'Enter weight and select country');
 

@@ -875,8 +875,7 @@ const STATUS_NEXT_LABEL = {
 };
 
 // ─── Activate traveler-specific UI ───────────────────────────────────────────
-// ─── Compute and render real traveler earnings from the shipment's total ──────
-// total_amount = base + (base × 15% platform fee), so base = total / 1.15
+// ─── Render real traveler earnings from the shipment's transaction ────────────
 function renderEarnings(data) {
     const earnEl = document.getElementById('earningAmount');
     if (!earnEl) return;
@@ -910,8 +909,8 @@ function activateTravelerView(data) {
         hide('travelerInfoCard');
     }
 
-    // Earnings — traveler earns the BASE price; total_amount includes the
-    // 15% platform fee on top, so base = total / 1.15
+    // Earnings — traveler earns the BASE price (real traveler_amount from the
+    // transaction, already correctly calculated server-side at 30% platform fee).
     renderEarnings(data);
 
     // Sender info
