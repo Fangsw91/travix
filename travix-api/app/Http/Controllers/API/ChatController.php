@@ -13,7 +13,7 @@ class ChatController extends Controller
     public function index(Request $request, $shipmentId)
     {
         $user     = $request->user();
-        $shipment = Shipment::findOrFail($shipmentId);
+        $shipment = Shipment::with(['sender:id,name,role', 'traveler:id,name,role'])->findOrFail($shipmentId);
 
         // Only sender or traveler of this shipment can read
         if ($shipment->sender_id !== $user->id && $shipment->traveler_id !== $user->id) {
@@ -41,7 +41,27 @@ class ChatController extends Controller
                 'date'       => $m->created_at->diffForHumans(),
             ]);
 
-        return response()->json(['success' => true, 'messages' => $messages]);
+        // The "other party" — determined from the shipment itself, not from
+        // message content. This means the chat header shows the correct name
+        // immediately even if the conversation has no incoming message yet
+        // (e.g. the current user sent the first messages and got no reply).
+        $isSender = $shipment->sender_id === $user->id;
+        $otherParty = $isSender ? $shipment->traveler : $shipment->sender;
+
+        return response()->json([
+            'success'  => true,
+            'messages' => $messages,
+            'other_party' => $otherParty ? [
+                'name' => $otherParty->name,
+                'role' => $otherParty->role,
+            ] : null,
+            'shipment' => [
+                'order_id'    => $shipment->order_id,
+                'status'      => $shipment->status,
+                'status_label'=> Shipment::$statusLabels[$shipment->status] ?? $shipment->status,
+                'route'       => "{$shipment->pickup_location} → {$shipment->destination}",
+            ],
+        ]);
     }
 
     // POST /api/chat/{shipmentId} — send a message

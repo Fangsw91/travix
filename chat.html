@@ -81,12 +81,18 @@
         .msg-row.mine .msg-avatar { background: #D4AF37; }
 
         .msg-bubble {
+            display: inline-block;
+            width: fit-content;
             max-width: 68%;
+            min-width: 2.5rem;
             padding: 0.65rem 0.9rem;
             border-radius: 16px;
             font-size: 0.9rem;
             line-height: 1.45;
             position: relative;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
         }
         .msg-row:not(.mine) .msg-bubble {
             background: #F3F4F6;
@@ -288,6 +294,16 @@
             if (!data.success) {
                 renderChatError(data.message || 'Could not load messages for this shipment.');
                 return;
+            }
+
+            // Set the header from the shipment/other_party data — works even
+            // if there are no incoming messages yet to infer the name from.
+            if (data.other_party) {
+                document.getElementById('chatOtherName').textContent = data.other_party.name || 'Unknown';
+            }
+            if (data.shipment) {
+                document.getElementById('chatShipmentRoute').textContent = data.shipment.route || '—';
+                document.getElementById('chatStatus').textContent = data.shipment.status_label || '—';
             }
 
             const msgs = data.messages;
