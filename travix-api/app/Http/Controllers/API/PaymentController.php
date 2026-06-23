@@ -75,8 +75,12 @@ class PaymentController extends Controller
             return response()->json(['success' => false, 'message' => 'Payment not completed'], 400);
         }
 
-        $platformFee    = round($shipment->total_amount * 0.15, 2);
-        $travelerAmount = round($shipment->total_amount * 0.85, 2);
+        // total_amount = base + platform_fee, where platform_fee = base × 0.30
+        // (matches the Calculator page — the single source of truth for fees).
+        // So: base = total_amount / 1.30, platform_fee = total_amount - base.
+        $base           = round($shipment->total_amount / 1.30, 2);
+        $platformFee    = round($shipment->total_amount - $base, 2);
+        $travelerAmount = $base;
 
         Transaction::create([
             'shipment_id'        => $shipment->id,

@@ -58,7 +58,7 @@ function calculateEstimatedCost() {
     const valueFeeRate = getValueFeeRate(itemValue);
     const valueFee      = itemValue * valueFeeRate;
     const base          = Math.max(weightFee + valueFee, 5); // minimum $5
-    const platformFee   = base * 0.15;
+    const platformFee   = base * 0.15 * 2; // 30% — matches Calculator page (the single source of truth)
     const total          = base + platformFee;
 
     if (estimatedCostEl) estimatedCostEl.textContent = `$${total.toFixed(2)}`;

@@ -27,8 +27,10 @@ class BackfillMissingTransactions extends Command
         $this->info($shipments->count() . ' shipment(s) missing a transaction:');
 
         foreach ($shipments as $shipment) {
-            $platformFee    = round($shipment->total_amount * 0.15, 2);
-            $travelerAmount = round($shipment->total_amount - $platformFee, 2);
+            // total_amount = base + platform_fee (base × 0.30), so base = total / 1.30
+            $base           = round($shipment->total_amount / 1.30, 2);
+            $platformFee    = round($shipment->total_amount - $base, 2);
+            $travelerAmount = $base;
 
             $this->line(sprintf(
                 "  - %s: total $%s → traveler gets $%s (fee $%s)",

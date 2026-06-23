@@ -30,8 +30,10 @@ class RecalculateTransactionAmounts extends Command
                 continue;
             }
 
-            $correctPlatformFee    = round($shipment->total_amount * 0.15, 2);
-            $correctTravelerAmount = round($shipment->total_amount - $correctPlatformFee, 2);
+            // total_amount = base + platform_fee (base × 0.30), so base = total / 1.30
+            $correctBase           = round($shipment->total_amount / 1.30, 2);
+            $correctPlatformFee    = round($shipment->total_amount - $correctBase, 2);
+            $correctTravelerAmount = $correctBase;
 
             $needsFix = abs($txn->platform_fee - $correctPlatformFee) > 0.01
                      || abs($txn->traveler_amount - $correctTravelerAmount) > 0.01

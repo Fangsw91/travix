@@ -135,7 +135,7 @@ function updateUI(data) {
     // hardcoded placeholder values (iPhone 15 Pro, Paris, France, etc.) or
     // whatever stale data happened to be sitting in localStorage from before.
     fillDeliveryDetails(
-        { destination: data.destination, pickup: data.pickup_location, pickupDate: data.pickup_date, deliveryDate: data.delivery_date },
+        { destination: data.destination, pickup: data.pickup_location, pickupDate: data.pickup_date },
         { itemName: data.item_name, weight: data.weight }
     );
 
@@ -472,7 +472,6 @@ function fillDeliveryDetails(route, sendItem) {
     if (w) set(3, `${w} kg`);
     set(4, sendItem.pickupDate   || route.pickupDate);
     set(5, sendItem.pickup       || route.pickup);
-    set(6, sendItem.deliveryDate || route.deliveryDate);
 }
 
 // ─── Buttons ──────────────────────────────────────────────────────────────────

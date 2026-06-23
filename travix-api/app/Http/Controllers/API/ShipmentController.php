@@ -69,8 +69,10 @@ class ShipmentController extends Controller
 
             // Create the matching transaction immediately so earnings show
             // correctly everywhere as soon as the shipment exists.
-            $platformFee    = round($shipment->total_amount * 0.15, 2);
-            $travelerAmount = round($shipment->total_amount - $platformFee, 2);
+            // total_amount = base + platform_fee (base × 0.30), so base = total / 1.30.
+            $base           = round($shipment->total_amount / 1.30, 2);
+            $platformFee    = round($shipment->total_amount - $base, 2);
+            $travelerAmount = $base;
 
             Transaction::create([
                 'shipment_id'     => $shipment->id,
@@ -211,8 +213,10 @@ class ShipmentController extends Controller
         // without this, "Your Earnings" on the tracking page stays empty
         // because it reads from Transaction.traveler_amount, not the shipment.
         if (!Transaction::where('shipment_id', $shipment->id)->exists()) {
-            $platformFee    = round($shipment->total_amount * 0.15, 2);
-            $travelerAmount = round($shipment->total_amount - $platformFee, 2);
+            // total_amount = base + platform_fee (base × 0.30), so base = total / 1.30.
+            $base           = round($shipment->total_amount / 1.30, 2);
+            $platformFee    = round($shipment->total_amount - $base, 2);
+            $travelerAmount = $base;
 
             Transaction::create([
                 'shipment_id'     => $shipment->id,
@@ -304,8 +308,10 @@ class ShipmentController extends Controller
         ]);
 
         // Also create the matching transaction so earnings show correctly everywhere
-        $platformFee    = round($shipment->total_amount * 0.15, 2);
-        $travelerAmount = round($shipment->total_amount - $platformFee, 2);
+        // total_amount = base + platform_fee (base × 0.30), so base = total / 1.30.
+        $base           = round($shipment->total_amount / 1.30, 2);
+        $platformFee    = round($shipment->total_amount - $base, 2);
+        $travelerAmount = $base;
 
         \App\Models\Transaction::create([
             'shipment_id'     => $shipment->id,
@@ -429,11 +435,11 @@ class ShipmentController extends Controller
             'cancelled'        => '#EF4444',
         ];
 
-        // Estimate the traveler's cut using the same fixed 15% platform fee used
-        // everywhere else (PaymentController, dashboard stats). This is shown to
-        // the traveler BEFORE they accept, since no Transaction exists yet at
-        // the 'requested' stage — the real traveler_amount is locked in at payment time.
-        $estimatedTravelerAmount = round($s->total_amount * 0.85, 2);
+        // Estimate the traveler's cut using the same 30% platform fee used
+        // everywhere else (Calculator page is the source of truth). This is
+        // shown to the traveler BEFORE they accept, since no Transaction exists
+        // yet at the 'requested' stage — total_amount = base × 1.30, so base = total / 1.30.
+        $estimatedTravelerAmount = round($s->total_amount / 1.30, 2);
 
         return [
             'id'              => $s->id,
