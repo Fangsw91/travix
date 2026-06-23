@@ -5,7 +5,12 @@ let refreshTimer = null;
 let currentRole  = 'sender'; // 'sender' | 'traveler'
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', initDashboard);
+// Called directly (not via DOMContentLoaded) — this script tag sits at the end
+// of <body>, so every element above it (profile, deliveries list, stat cards)
+// already exists in the DOM by the time this line runs. Waiting for the event
+// here only adds a delay, since it may have already fired or waits a tick —
+// that delay was the remaining cause of the flash on first load.
+initDashboard();
 
 async function initDashboard() {
     const token = localStorage.getItem('auth_token');

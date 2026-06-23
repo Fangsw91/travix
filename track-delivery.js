@@ -21,7 +21,10 @@ const STATUS_LABELS = {
 };
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+// Runs immediately (not via DOMContentLoaded) — the script tag is at the end
+// of <body>, so all elements above it already exist. Waiting for the event
+// here only delayed loadFromCache()/fetchStatus(), adding to the visible flash.
+(function() {
     const urlParams = new URLSearchParams(window.location.search);
     currentOrderId  = urlParams.get('id') || localStorage.getItem('currentOrderId');
 
@@ -46,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     bindButtons();
-});
+})();
 
 // ─── Demo tracking data — shown when opening the page without a real order ────
 function loadDemoTracking() {

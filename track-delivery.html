@@ -13,6 +13,22 @@
     <!-- Leaflet.js - Free map, no API key needed -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
+<style>
+    /* Role-dependent cards — hidden by default (sender view), shown instantly
+       via data-viewer before paint. This is what was still causing a flash:
+       text inside these cards was fixed before, but the cards themselves
+       (the whole block, display:none ↔ block) were only toggled later by
+       activateTravelerView() after DOMContentLoaded. */
+    #travelerActionPanel, #earningsCard { display: none; }
+    html[data-viewer="traveler"] #travelerActionPanel,
+    html[data-viewer="traveler"] #earningsCard,
+    html[data-viewer="traveler"] #senderInfoCard {
+        display: block !important;
+    }
+    html[data-viewer="traveler"] #travelerInfoCard {
+        display: none !important;
+    }
+</style>
 <script>
     // Run BEFORE DOM paint — read this order's cached tracking data once,
     // store it globally so inline scripts placed right next to each element
