@@ -20,6 +20,16 @@ const STATUS_LABELS = {
     cancelled:        'Cancelled',
 };
 
+// Next status the traveler can advance to
+const STATUS_FLOW = ['requested','accepted','picked_up','in_transit','out_for_delivery','delivered'];
+
+const STATUS_NEXT_LABEL = {
+    accepted:         { label: '📦 Mark as Picked Up',     next: 'picked_up' },
+    picked_up:        { label: '🚀 Mark as In Transit',    next: 'in_transit' },
+    in_transit:       { label: '🚚 Out for Delivery',      next: 'out_for_delivery' },
+    out_for_delivery: { label: '✅ Mark as Delivered',     next: 'delivered' },
+};
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 // Runs immediately (not via DOMContentLoaded) — the script tag is at the end
 // of <body>, so all elements above it already exist. Waiting for the event
@@ -83,6 +93,7 @@ function loadDemoTracking() {
     );
 
     setupQuickActions({ shipmentId: null, orderId: currentOrderId, isDemo: true });
+    setupTravelerControls(lastStep.status, { orderId: currentOrderId, isDemo: true });
 }
 
 // Stop polling when tab hidden (saves battery/requests)
@@ -149,6 +160,9 @@ function updateUI(data) {
 
     // ── Pickup photo (visible to both roles) ──
     if (data.pickup_photo_url) showPickupPhotoCard(data.pickup_photo_url);
+
+    // This page is for the traveler only — always render the traveler view.
+    activateTravelerView(data);
 
     // ── Wire up Quick Action buttons (Message, Report Issue, etc.) once ──
     if (!window.__quickActionsBound) {
@@ -435,6 +449,12 @@ function loadFromCache() {
         const routeData    = JSON.parse(localStorage.getItem('requestedRoute')  || '{}');
         const sendItemData = JSON.parse(localStorage.getItem('sendItemData')     || '{}');
         fillDeliveryDetails(routeData, sendItemData);
+
+        // This page is for the traveler only — always render the traveler view.
+        activateTravelerView(data);
+        if (data.total_amount) {
+            renderEarnings(data);
+        }
     } catch (e) {}
 }
 
@@ -465,12 +485,6 @@ function fillDeliveryDetails(route, sendItem) {
 
 // ─── Buttons ──────────────────────────────────────────────────────────────────
 function bindButtons() {
-    document.querySelectorAll('.btn-message-traveler').forEach(btn =>
-        btn.addEventListener('click', () =>
-            showInfo('Chat feature coming soon!')
-        )
-    );
-
     const reportBtn = document.querySelector('.quick-action-btn:nth-child(1)');
     if (reportBtn) {
         reportBtn.addEventListener('click', () =>
@@ -846,49 +860,326 @@ function getTimeAgo(date) {
 
 console.log('🗺️ Live map module ready — Leaflet + OpenStreetMap');
 
-// ─── Show pickup photo card (sender sees proof of pickup) ─────────────────────
-function showPickupPhotoCard(photoUrl) {
-    if (document.getElementById('pickupPhotoCard')) return; // already shown
+// ═══════════════════════════════════════════════════════════════════════════════
+// TRAVELER VIEW — Status updates, location sharing, sender info
+// ═══════════════════════════════════════════════════════════════════════════════
 
-    const card = document.createElement('div');
-    card.id = 'pickupPhotoCard';
-    card.className = 'track-card';
-    card.style.cssText = 'border-left:4px solid #10B981;margin-bottom:1.5rem;';
-    card.innerHTML = `
-        <h2 class="card-title" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2">
-                <rect x="4" y="8" width="16" height="12" rx="2"/>
-                <path d="M8 8V6a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                <path d="M9 14l2 2 4-4" stroke-linecap="round"/>
-            </svg>
-            Item Pickup Proof
-        </h2>
-        <p style="font-size:0.85rem;color:#6B7280;margin-bottom:0.75rem;">
-            Photo taken by the traveler at the time of collection.
-        </p>
-        <a href="${photoUrl}" target="_blank" id="pickupPhotoLink" style="display:block;">
-            <img src="${photoUrl}" alt="Pickup photo"
-                style="width:100%;max-height:280px;object-fit:cover;border-radius:12px;
-                       box-shadow:0 4px 16px rgba(0,0,0,0.1);cursor:zoom-in;
-                       transition:transform 0.2s;"
-                onmouseover="this.style.transform='scale(1.01)'"
-                onmouseout="this.style.transform=''"
-                onerror="this.closest('a').outerHTML='<div style=\'padding:2rem;text-align:center;background:#F9FAFB;border-radius:12px;color:#9CA3AF;font-size:0.85rem;\'>📷 Photo could not be loaded — it may have been moved or deleted from the server.</div>'">
-        </a>
-        <p style="font-size:0.75rem;color:#9CA3AF;margin-top:0.5rem;text-align:right;">
-            Click to view full size
-        </p>
+let locationShareInterval = null;
+
+// ─── Activate traveler-specific UI ───────────────────────────────────────────
+// ─── Render real traveler earnings from the shipment's transaction ────────────
+function renderEarnings(data) {
+    const earnEl = document.getElementById('earningAmount');
+    if (!earnEl) return;
+
+    // Use the real traveler_amount saved at payment time — never re-derive
+    // this from total_amount on the frontend (the fee % can change over time).
+    const amount = parseFloat(data.traveler_amount);
+    if (!amount || isNaN(amount)) {
+        earnEl.textContent = 'Pending';
+        earnEl.style.fontSize = '1.1rem';
+        earnEl.style.color = '#9CA3AF';
+        return;
+    }
+    earnEl.textContent = '$' + amount.toFixed(2);
+    earnEl.style.fontSize = '2rem';
+    earnEl.style.color = '#10B981';
+}
+
+function activateTravelerView(data) {
+    // Earnings — traveler earns the BASE price (real traveler_amount from the
+    // transaction, already correctly calculated server-side at 30% platform fee).
+    renderEarnings(data);
+
+    // Sender info
+    if (data.sender) {
+        const name    = data.sender.name || '—';
+        const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+        setText('senderName', name);
+        setText('senderAvatar', initials);
+        setText('senderItemName', data.item_name || '—');
+    }
+
+    // Status action button
+    renderTravelerActionButton(data.status);
+}
+
+// ─── Render the "advance status" button ──────────────────────────────────────
+function renderTravelerActionButton(currentStatus) {
+    const container = document.getElementById('statusActionButtons');
+    if (!container) return;
+
+    const action = STATUS_NEXT_LABEL[currentStatus];
+
+    if (!action) {
+        container.innerHTML = currentStatus === 'delivered'
+            ? `<div style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.65rem 1.25rem;background:#ECFDF5;color:#065F46;border-radius:8px;font-weight:600;font-size:0.875rem;">
+                   ✅ Delivery Complete — Great job!
+               </div>`
+            : `<div style="color:#6B7280;font-size:0.9rem;">No actions available for current status.</div>`;
+        return;
+    }
+
+    // "Picked Up" gets a special photo-upload flow; others advance directly
+    const clickHandler = action.next === 'picked_up'
+        ? `openPickupModal()`
+        : `advanceStatus('${action.next}')`;
+
+    container.innerHTML = `
+        <button onclick="${clickHandler}" style="
+            display:inline-flex;align-items:center;gap:0.5rem;
+            padding:0.7rem 1.5rem;
+            background:linear-gradient(135deg,#D4AF37,#F4C542);
+            color:#fff;border:none;border-radius:8px;
+            font-weight:700;font-size:0.9rem;cursor:pointer;
+            transition:all 0.25s;box-shadow:0 4px 12px rgba(212,175,55,0.3);
+        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+            ${action.label}
+        </button>
     `;
+}
 
-    // Insert into the main track column after the delivery status card
-    const mainCol = document.querySelector('.track-main-column');
-    const firstCard = mainCol?.querySelector('.track-card');
-    if (mainCol && firstCard) {
-        mainCol.insertBefore(card, firstCard.nextSibling);
+// ─── Call API to advance status ───────────────────────────────────────────────
+async function advanceStatus(newStatus) {
+    if (!currentOrderId) return;
+
+    const btn = document.querySelector('#statusActionButtons button');
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.7'; }
+
+    // Demo mode — simulate the update locally, no real API call
+    if (String(currentOrderId).includes('DEMO')) {
+        setTimeout(() => {
+            showSuccess('Status updated to: ' + newStatus.replace(/_/g, ' '));
+            simulateDemoStatusAdvance(newStatus);
+        }, 500);
+        return;
+    }
+
+    try {
+        await apiCall(`/shipments/${currentOrderId}/update-status`, {
+            method: 'POST',
+            body: JSON.stringify({ status: newStatus }),
+        });
+        showSuccess('Status updated to: ' + (newStatus.replace(/_/g,' ')));
+        // Refresh immediately
+        await fetchStatus();
+    } catch (err) {
+        showError(err.message || 'Could not update status. Please try again.');
+        if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
     }
 }
 
-// ─── Shared Quick Actions (Message, Report Issue, Update Delivery Time, Receipt) ──
+// ─── Demo: advance the local timeline without touching the backend ───────────
+function simulateDemoStatusAdvance(newStatus) {
+    const labels = {
+        picked_up:        'Item Picked Up',
+        in_transit:       'In Transit',
+        out_for_delivery: 'Out for Delivery',
+        delivered:        'Delivered',
+    };
+    const descriptions = {
+        picked_up:        'Traveler picked up the item with proof photo',
+        in_transit:       'Departed Amman, heading to Riyadh',
+        out_for_delivery: 'Arrived in Riyadh, on the way to recipient',
+        delivered:        'Package delivered successfully',
+    };
+
+    window.__demoTimeline = window.__demoTimeline || [
+        { status: 'requested', title: 'Shipment Requested', description: 'Your shipment request has been created', time: '2026-06-21T09:00:00' },
+        { status: 'accepted',  title: 'Traveler Accepted',  description: 'Yousef Khalil will carry your item', time: '2026-06-21T11:30:00' },
+    ];
+
+    window.__demoTimeline.push({
+        status: newStatus,
+        title: labels[newStatus] || newStatus,
+        description: descriptions[newStatus] || '',
+        time: new Date().toISOString(),
+    });
+
+    // Persist so the timeline survives page reload / coming back later
+    localStorage.setItem(`demoTimeline_${currentOrderId}`, JSON.stringify(window.__demoTimeline));
+
+    // Keep the dashboard's cached shipment card in sync with the new status
+    updateDemoShipmentInDashboardCache(currentOrderId, newStatus, labels[newStatus] || newStatus);
+
+    updateStatusBadge(newStatus, labels[newStatus] || newStatus);
+    renderTimeline(window.__demoTimeline);
+    renderTravelerActionButton(newStatus);
+
+    const btn = document.querySelector('#statusActionButtons button');
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+}
+
+// ─── Keep the dashboard's "Active Deliveries" card in sync with demo progress ─
+function updateDemoShipmentInDashboardCache(orderId, status, statusLabel) {
+    const colorMap = {
+        accepted: '#3B82F6', picked_up: '#8B5CF6', in_transit: '#F59E0B',
+        out_for_delivery: '#F97316', delivered: '#10B981',
+    };
+    try {
+        let cached = JSON.parse(localStorage.getItem('cachedShipments_traveler') || '[]');
+        cached = cached.map(s => s.order_id === orderId
+            ? { ...s, status, status_label: statusLabel, status_color: colorMap[status] || '#6B7280' }
+            : s);
+        localStorage.setItem('cachedShipments_traveler', JSON.stringify(cached));
+    } catch(e) {}
+}
+
+// ─── Pickup photo modal ───────────────────────────────────────────────────────
+function openPickupModal() {
+    // Remove any existing modal
+    const existing = document.getElementById('pickupModal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'pickupModal';
+    modal.style.cssText = `
+        position:fixed;inset:0;z-index:99999;
+        background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);
+        display:flex;align-items:center;justify-content:center;padding:1rem;
+    `;
+    modal.innerHTML = `
+        <div style="
+            background:#fff;border-radius:20px;width:100%;max-width:480px;
+            box-shadow:0 24px 64px rgba(0,0,0,0.2);overflow:hidden;
+            animation:scaleIn 0.25s ease;
+        ">
+            <style>
+                @keyframes scaleIn{from{transform:scale(0.93);opacity:0}to{transform:scale(1);opacity:1}}
+                #pickupDropZone.drag-over{border-color:#D4AF37!important;background:#FFFBEB!important;}
+            </style>
+
+            <!-- Modal header -->
+            <div style="
+                padding:1.25rem 1.5rem;
+                background:linear-gradient(135deg,#0A1A2F,#1E3A5F);
+                display:flex;align-items:center;justify-content:space-between;
+            ">
+                <div style="display:flex;align-items:center;gap:0.75rem;">
+                    <div style="width:38px;height:38px;border-radius:10px;background:rgba(212,175,55,0.2);display:flex;align-items:center;justify-content:center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2">
+                            <rect x="4" y="8" width="16" height="12" rx="2"/>
+                            <path d="M8 8V6a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                            <path d="M9 14l2 2 4-4" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="color:#fff;font-weight:700;font-size:1rem;">Confirm Item Pickup</div>
+                        <div style="color:#94A3B8;font-size:0.78rem;">Upload a photo of the item you collected</div>
+                    </div>
+                </div>
+                <button onclick="closePickupModal()" style="background:none;border:none;cursor:pointer;color:#94A3B8;padding:4px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal body -->
+            <div style="padding:1.5rem;">
+
+                <!-- Drop zone -->
+                <div id="pickupDropZone" onclick="document.getElementById('pickupPhotoInput').click()" style="
+                    border:2px dashed #D1D5DB;border-radius:14px;
+                    padding:2rem 1rem;text-align:center;cursor:pointer;
+                    background:#F9FAFB;transition:all 0.2s;margin-bottom:1rem;
+                ">
+                    <div id="pickupDropContent">
+                        <div style="font-size:2.5rem;margin-bottom:0.5rem;">📷</div>
+                        <div style="font-weight:600;color:#374151;margin-bottom:0.25rem;">Click or drag photo here</div>
+                        <div style="font-size:0.8rem;color:#9CA3AF;">JPG, PNG, WEBP — max 8 MB</div>
+                    </div>
+                    <img id="pickupPreview" src="" alt="Preview" style="
+                        display:none;max-width:100%;max-height:220px;
+                        border-radius:10px;object-fit:cover;
+                        box-shadow:0 4px 16px rgba(0,0,0,0.1);
+                    "/>
+                </div>
+                <input type="file" id="pickupPhotoInput" accept="image/jpeg,image/jpg,image/png,image/webp" style="display:none;">
+
+                <!-- Optional note -->
+                <div style="margin-bottom:1.25rem;">
+                    <label style="display:block;font-size:0.85rem;font-weight:600;color:#374151;margin-bottom:0.4rem;">
+                        Note <span style="color:#9CA3AF;font-weight:400;">(optional)</span>
+                    </label>
+                    <input id="pickupNote" type="text" placeholder="e.g. Item is well packed, collected from lobby"
+                        style="width:100%;padding:0.65rem 0.9rem;border:1.5px solid #E5E7EB;border-radius:8px;font-size:0.9rem;box-sizing:border-box;outline:none;"
+                        onfocus="this.style.borderColor='#D4AF37'" onblur="this.style.borderColor='#E5E7EB'">
+                </div>
+
+                <!-- Error line -->
+                <div id="pickupError" style="display:none;color:#EF4444;font-size:0.85rem;margin-bottom:0.75rem;padding:0.6rem 0.9rem;background:#FEF2F2;border-radius:8px;border-left:3px solid #EF4444;"></div>
+
+                <!-- Actions -->
+                <div style="display:flex;gap:0.75rem;">
+                    <button onclick="closePickupModal()" style="
+                        flex:1;padding:0.75rem;border:1.5px solid #E5E7EB;background:#fff;
+                        border-radius:10px;font-weight:600;font-size:0.9rem;cursor:pointer;color:#374151;
+                        transition:all 0.2s;
+                    " onmouseover="this.style.background='#F9FAFB'" onmouseout="this.style.background='#fff'">
+                        Cancel
+                    </button>
+                    <button id="pickupSubmitBtn" onclick="submitPickup()" style="
+                        flex:2;padding:0.75rem;
+                        background:linear-gradient(135deg,#D4AF37,#F4C542);
+                        color:#fff;border:none;border-radius:10px;
+                        font-weight:700;font-size:0.9rem;cursor:pointer;
+                        transition:all 0.2s;box-shadow:0 4px 12px rgba(212,175,55,0.3);
+                    ">
+                        ✅ Confirm Pickup
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) closePickupModal(); });
+
+    // Wire up file input + drag and drop
+    const input = document.getElementById('pickupPhotoInput');
+    const zone  = document.getElementById('pickupDropZone');
+
+    input.addEventListener('change', () => previewPickupPhoto(input.files[0]));
+
+    zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', ()  => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file) { input.files = e.dataTransfer.files; previewPickupPhoto(file); }
+    });
+}
+
+function previewPickupPhoto(file) {
+    if (!file) return;
+    const preview  = document.getElementById('pickupPreview');
+    const content  = document.getElementById('pickupDropContent');
+    const reader   = new FileReader();
+    reader.onload  = e => {
+        preview.src          = e.target.result;
+        preview.style.display = 'block';
+        content.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+
+// ─── Demo: activate traveler controls so the flow can be tried without a real order ──
+function setupTravelerControls(status, opts) {
+    if (!opts.isDemo) return; // real orders already use activateTravelerView via fetchStatus
+
+    // Demo shipment: 0.4kg iPhone ($1000 value) to Saudi Arabia
+    // weight_fee=$3.20 + value_fee=$20.00 → base=$23.20 (traveler keeps the full base)
+    renderEarnings({ traveler_amount: 23.20 });
+    setText('senderName', 'Omar Al-Rashid');
+    setText('senderAvatar', 'OA');
+    setText('senderItemName', 'iPhone 15 Pro Max');
+
+    renderTravelerActionButton(status);
+}
+
+// ─── Quick action buttons: Message, Report Issue, Update Delivery Time, Receipt ──
 function setupQuickActions(opts) {
     const { shipmentId, orderId, isDemo } = opts;
 
@@ -1026,6 +1317,164 @@ function showReceiptModal(orderId, isDemo) {
 
 // (show/hide/setText helpers are defined once, near the end of this file)
 
+async function submitPickup() {
+    const input   = document.getElementById('pickupPhotoInput');
+    const note    = document.getElementById('pickupNote')?.value || '';
+    const errorEl = document.getElementById('pickupError');
+    const btn     = document.getElementById('pickupSubmitBtn');
+
+    // Validate
+    if (!input.files || !input.files[0]) {
+        errorEl.textContent    = 'Please upload a photo of the item before confirming.';
+        errorEl.style.display  = 'block';
+        return;
+    }
+    errorEl.style.display = 'none';
+
+    // Loading state
+    btn.disabled  = true;
+    btn.textContent = '⏳ Uploading…';
+
+    // Demo mode — skip the real upload, just simulate success
+    if (String(currentOrderId).includes('DEMO')) {
+        setTimeout(() => {
+            closePickupModal();
+            showSuccess('Item picked up! Photo saved successfully.');
+            simulateDemoStatusAdvance('picked_up');
+        }, 800);
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('photo', input.files[0]);
+        if (note) formData.append('note', note);
+
+        // Must NOT set Content-Type header — browser sets it with boundary for multipart
+        const token = localStorage.getItem('auth_token');
+        const res   = await fetch(`${window.API_BASE_URL}/shipments/${currentOrderId}/pickup`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                ...(token && { 'Authorization': `Bearer ${token}` }),
+            },
+            body: formData,
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Upload failed');
+
+        closePickupModal();
+        showSuccess('Item picked up! Photo saved successfully.');
+        await fetchStatus(); // refresh timeline + action button
+    } catch (err) {
+        btn.disabled    = false;
+        btn.textContent = '✅ Confirm Pickup';
+        if (errorEl) {
+            errorEl.textContent   = err.message || 'Something went wrong. Please try again.';
+            errorEl.style.display = 'block';
+        }
+    }
+}
+
+function closePickupModal() {
+    document.getElementById('pickupModal')?.remove();
+}
+
+// ─── Share traveler's GPS location ───────────────────────────────────────────
+function shareMyLocation() {
+    if (!navigator.geolocation) {
+        showError('Geolocation is not supported by your browser.');
+        return;
+    }
+
+    const statusEl = document.getElementById('locationStatus');
+    if (statusEl) statusEl.textContent = 'Getting location…';
+
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            const { latitude: lat, longitude: lng } = pos.coords;
+
+            // Demo mode — show success and update the map locally, skip the real API call
+            if (String(currentOrderId).includes('DEMO')) {
+                if (statusEl) {
+                    statusEl.innerHTML = `<span style="color:#10B981;font-weight:600;">✓ Location shared</span> · ${new Date().toLocaleTimeString()}`;
+                }
+                updateMapLocation(lat, lng, 'Your location (demo)', new Date().toISOString());
+                if (!locationShareInterval) {
+                    locationShareInterval = setInterval(shareMyLocation, 60000);
+                }
+                return;
+            }
+
+            try {
+                await apiCall(`/shipments/${currentOrderId}/location`, {
+                    method: 'POST',
+                    body: JSON.stringify({ lat, lng }),
+                });
+                if (statusEl) {
+                    statusEl.innerHTML = `<span style="color:#10B981;font-weight:600;">✓ Location shared</span> · ${new Date().toLocaleTimeString()}`;
+                }
+                // Update local map too
+                updateMapLocation(lat, lng, 'Your location', new Date().toISOString());
+
+                // Auto-share every 60 seconds while page is open
+                if (!locationShareInterval) {
+                    locationShareInterval = setInterval(shareMyLocation, 60000);
+                }
+            } catch (e) {
+                console.warn('Location share failed:', e);
+                if (statusEl) statusEl.textContent = 'Could not share location: ' + (e.message || 'Make sure you are the assigned traveler for this order.');
+            }
+        },
+        (err) => {
+            if (statusEl) statusEl.textContent = 'Location access denied.';
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+}
+
+// ─── Show pickup photo card (sender sees proof of pickup) ─────────────────────
+function showPickupPhotoCard(photoUrl) {
+    if (document.getElementById('pickupPhotoCard')) return; // already shown
+
+    const card = document.createElement('div');
+    card.id = 'pickupPhotoCard';
+    card.className = 'track-card';
+    card.style.cssText = 'border-left:4px solid #10B981;margin-bottom:1.5rem;';
+    card.innerHTML = `
+        <h2 class="card-title" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2">
+                <rect x="4" y="8" width="16" height="12" rx="2"/>
+                <path d="M8 8V6a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                <path d="M9 14l2 2 4-4" stroke-linecap="round"/>
+            </svg>
+            Item Pickup Proof
+        </h2>
+        <p style="font-size:0.85rem;color:#6B7280;margin-bottom:0.75rem;">
+            Photo taken by the traveler at the time of collection.
+        </p>
+        <a href="${photoUrl}" target="_blank" id="pickupPhotoLink" style="display:block;">
+            <img src="${photoUrl}" alt="Pickup photo"
+                style="width:100%;max-height:280px;object-fit:cover;border-radius:12px;
+                       box-shadow:0 4px 16px rgba(0,0,0,0.1);cursor:zoom-in;
+                       transition:transform 0.2s;"
+                onmouseover="this.style.transform='scale(1.01)'"
+                onmouseout="this.style.transform=''"
+                onerror="this.closest('a').outerHTML='<div style=\'padding:2rem;text-align:center;background:#F9FAFB;border-radius:12px;color:#9CA3AF;font-size:0.85rem;\'>📷 Photo could not be loaded — it may have been moved or deleted from the server.</div>'">
+        </a>
+        <p style="font-size:0.75rem;color:#9CA3AF;margin-top:0.5rem;text-align:right;">
+            Click to view full size
+        </p>
+    `;
+
+    // Insert into the main track column after the delivery status card
+    const mainCol = document.querySelector('.track-main-column');
+    const firstCard = mainCol?.querySelector('.track-card');
+    if (mainCol && firstCard) {
+        mainCol.insertBefore(card, firstCard.nextSibling);
+    }
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function show(id) {
@@ -1041,4 +1490,9 @@ function setText(id, val) {
     if (el) el.textContent = val;
 }
 
-console.log('✅ Track delivery module ready');
+// Stop location sharing when leaving page
+window.addEventListener('beforeunload', () => {
+    clearInterval(locationShareInterval);
+});
+
+console.log('✅ Traveler view module ready');

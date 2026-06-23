@@ -236,6 +236,7 @@ function skeletonCards(n) {
 // ─── Shipment card HTML ───────────────────────────────────────────────────────
 function shipmentCard(s, role) {
     const isActive = !['delivered','cancelled'].includes(s.status);
+    const trackPage = role === 'traveler' ? 'traveler-tracking.html' : 'track-delivery.html';
 
     return `
     <div class="delivery-item" style="
@@ -244,7 +245,7 @@ function shipmentCard(s, role) {
         margin-bottom:0.75rem;background:#fff;
         transition:box-shadow 0.2s;
         cursor:pointer;
-    " onclick="window.location.href='track-delivery.html?id=${s.order_id}'"
+    " onclick="window.location.href='${trackPage}?id=${s.order_id}'"
        onmouseenter="this.style.boxShadow='0 2px 12px rgba(0,0,0,0.08)'"
        onmouseleave="this.style.boxShadow='none'">
         <div style="flex:1;min-width:0;">
@@ -266,7 +267,7 @@ function shipmentCard(s, role) {
             <div style="font-weight:700;color:#D4AF37;font-size:0.95rem;">${role === 'traveler' ? (s.traveler_amount || '—') : s.total_amount}</div>
             ${isActive ? `
             <div style="display:flex;gap:0.4rem;flex-wrap:wrap;justify-content:flex-end;">
-                <a href="track-delivery.html?id=${s.order_id}"
+                <a href="${trackPage}?id=${s.order_id}"
                    style="font-size:0.75rem;color:#3B82F6;text-decoration:none;padding:2px 8px;border:1px solid #3B82F6;border-radius:6px;"
                    onclick="event.stopPropagation()">Track</a>
                 ${s.id && s.status !== 'requested' ? `
