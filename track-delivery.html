@@ -14,20 +14,23 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
 <script>
-    // Run BEFORE DOM paint — instantly apply the correct page title for this
-    // specific order, using the order-specific cache from a previous visit.
-    // Avoids the "title changes a moment after load" flash entirely.
-    (function() {
+    // Run BEFORE DOM paint — read this order's cached tracking data once,
+    // store it globally so inline scripts placed right next to each element
+    // below can apply it the instant the parser reaches that element. This
+    // avoids the placeholder→real-data flash that happens when everything
+    // waits for DOMContentLoaded + an async cache read.
+    window.__earlyTrackingCache = (function() {
         try {
             const urlParams = new URLSearchParams(window.location.search);
             const orderId   = urlParams.get('id') || localStorage.getItem('currentOrderId');
-            if (!orderId) return;
+            if (!orderId) return null;
 
             const cached = JSON.parse(localStorage.getItem(`trackingData_${orderId}`) || 'null');
             if (cached && cached.is_traveler) {
                 document.documentElement.setAttribute('data-viewer', 'traveler');
             }
-        } catch (e) {}
+            return { orderId, ...cached };
+        } catch (e) { return null; }
     })();
 </script>
 <body>
@@ -93,8 +96,22 @@
                         })();
                     </script>
                     <p class="order-id">Order ID: <span id="orderId">TRX-2024-001234</span></p>
+                    <script>
+                        (function() {
+                            const c = window.__earlyTrackingCache;
+                            if (c?.orderId) document.getElementById('orderId').textContent = c.orderId;
+                        })();
+                    </script>
                 </div>
-                <div class="status-badge-header in-transit">In Transit</div>
+                <div class="status-badge-header in-transit" id="statusBadgeHeader">In Transit</div>
+                <script>
+                    (function() {
+                        const c = window.__earlyTrackingCache;
+                        if (c?.status_label) {
+                            document.getElementById('statusBadgeHeader').textContent = c.status_label;
+                        }
+                    })();
+                </script>
             </div>
 
             <!-- ── TRAVELER ACTION PANEL (hidden until role detected) ── -->
@@ -266,6 +283,28 @@
                             </div>
                         </div>
                     </div>
+                    <script>
+                        // Inline — applies the same fields fillDeliveryDetails() would,
+                        // but instantly from the early cache, before track-delivery.js
+                        // even loads. Eliminates the placeholder→real-data flash.
+                        (function() {
+                            const c = window.__earlyTrackingCache;
+                            if (!c) return;
+                            const set = (nth, val) => {
+                                const el = document.querySelector(`.detail-item:nth-child(${nth}) .detail-value`);
+                                if (el && val) {
+                                    const icon = el.querySelector('svg');
+                                    el.textContent = val;
+                                    if (icon) el.prepend(icon);
+                                }
+                            };
+                            set(1, c.item_name);
+                            set(2, c.destination);
+                            if (c.weight) set(3, `${c.weight} kg`);
+                            set(4, c.pickup_date);
+                            set(5, c.pickup_location);
+                        })();
+                    </script>
 
                     <!-- Current Location Map -->
                     <div class="track-card">

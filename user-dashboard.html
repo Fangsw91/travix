@@ -20,14 +20,14 @@
     </style>
     <script>
         // Run BEFORE DOM paint — read role from localStorage and inject body class
-        (function() {
+        window.__earlyUser = (function() {
             try {
                 const user = JSON.parse(localStorage.getItem('user') || 'null');
 
                 // Admin accounts get redirected immediately, before any content paints
                 if (user && user.role === 'admin') {
                     window.location.replace('admin-dashboard.html');
-                    return;
+                    return null;
                 }
 
                 const role = (user && user.role === 'traveler') ? 'traveler' : 'sender';
@@ -37,7 +37,9 @@
                 // before the real status loads from the API.
                 const verifStatus = (user && user.verification_status) || 'unverified';
                 document.documentElement.setAttribute('data-verif', verifStatus);
-            } catch(e) {}
+
+                return user;
+            } catch(e) { return null; }
         })();
     </script>
     <style>
@@ -175,6 +177,32 @@
                         </div>
                         <p class="user-handle" id="userHandle">@...</p>
                         <p class="user-location" id="userLocation">📍 Loading...</p>
+                        <script>
+                            // Inline — instantly fills name/avatar/handle/location from the
+                            // early-cached user (read before paint), eliminating the
+                            // "Loading.../?" flash that happens while waiting for renderProfile()
+                            // to run after DOMContentLoaded.
+                            (function() {
+                                const u = window.__earlyUser;
+                                if (!u) return;
+                                const nameEl   = document.getElementById('userName');
+                                const avatarEl = document.getElementById('userAvatar');
+                                const handleEl = document.getElementById('userHandle');
+                                const locEl    = document.getElementById('userLocation');
+
+                                if (nameEl) nameEl.textContent = u.name || 'User';
+                                if (handleEl) handleEl.textContent = '@' + (u.email || '').split('@')[0];
+                                if (locEl && u.location) locEl.textContent = '📍 ' + u.location;
+                                if (avatarEl && !avatarEl.querySelector('img')) {
+                                    const initials = (u.name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                                    avatarEl.textContent = initials;
+                                    avatarEl.style.background = u.role === 'traveler'
+                                        ? 'linear-gradient(135deg, #3B82F6, #2563EB)'
+                                        : 'linear-gradient(135deg, #D4AF37, #F4C542)';
+                                    avatarEl.style.color = '#fff';
+                                }
+                            })();
+                        </script>
                         <div class="user-rating">
                             <span class="star">⭐</span>
                             <strong id="userRating">0</strong>
